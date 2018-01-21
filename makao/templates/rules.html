@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %} Zasady gry {% endblock %}
+{% block main %}
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <form action="{{url_for('begin')}}" method="post">
+                    <fieldset>
+                        <legend>Dodatkowe karty funkcyjne</legend>
+                        <p> Jakie dodatkowe karty funkcyjne będą występować w rozgrywce? </p>
+                        <input name="queen" type="checkbox" id="queen" value="1">
+                        <label for="queen"> Dama Pik ("moc" : unieważnia karty bitne, tj. 2, 3, król karo, król pik) </label>
+                        <input name="joker" type="checkbox" id="joker" value="1" checked>
+                        <label for="joker"> Joker ("moc" : tzw. wildcard, zastępuję dowolną wybraną kartę)</label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend> Zakończenie gry </legend>
+                        <p> Kiedy następuje koniec gry?</p>
+                        <input name="end_game" type="radio" id="end_game_1" value="1" checked />
+                        <label for="end_game_1"> Kiedy w grze zostanie tylko jeden gracz </label>
+                        <input name="end_game" type="radio" id="end_game_2" value="2">
+                        <label for="end_game_2"> Kiedy pierwszy z graczy pozbęcie się kart </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend> Wykładanie kart </legend>
+                        <p> Ile kart gracz może wyłożyć jednocześnie? <br />
+                        (Jeśli w dopuściłeś do użycia Jokery, również 5 oraz 6) </p>
+                        <input name="putting_cards" type="radio" id="putting_cards_1" value="1" checked />
+                        <label for="putting_cards_1"> 1, 3 , 4 </label>
+                        <input name="" type="radio" id="putting_cards_2" value="2" />
+                        <label for="putting_cards_2"> 1, 2, 3, 4 </label>
+                    </fieldset>
+
+                     <fieldset>
+                        <legend> Ciągnięcie kart </legend>
+                        <p> Co gracz może zrobić po wyciągnięciu kart? </p>
+                        <input name="taking_cards" type="radio" id="taking_cards_1" value="1" />
+                        <label for="taking_cards_1"> Nic, kończy ruch </label>
+                         <input name="taking_cards" type="radio" id="taking_cards_2" value="2" checked />
+                        <label for="taking_cards_2"> Wyłożyć kartę którą wyciągnął </label>
+                        <input name="" type="radio" id="taking_cards_3"  value="3"/>
+                        <label for="taking_cards_3"> Wyłożyć kartę którą wyciągnął, oraz pozostałe pasujące do niej karty </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend> Karty bitne </legend>
+                        <p> Jakimi kartami gracz może odpowiedzieć na atak kartami bitnymi?</p>
+                        <input name="valiant_cards" type="radio" id="valiant_cards_1" value="1" checked>
+                        <label for="valiant_cards_1"> Kartą o tej samej figurze (2, gdy na stos rzucono 2) </label>
+                        <input name="valiant_cards" type="radio" id="valiant_cards_2" value="2">
+                        <label for="valiant_cards_2"> Kartą o innej figurze, jeśli pasuje kolorem (2 kier gdy na stos rzucono 3 kier) </label>
+                         <input name="valiant_cards" type="radio" id="valiant_cards_3" value="3">
+                        <label for="valiant_cards_3"> Kartą o innej,<strong>wyższej wartością </strong> figurze jeśli pasuje kolorem (króla karo gdy na stos rzucono 3 karo) </label>
+                    </fieldset>
+
+                    <button class="btn waves-effect light-blue" type="submit" name="action">Zapisz</button>
+
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
