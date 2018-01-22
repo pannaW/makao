@@ -15,8 +15,9 @@ class Player(object):
         self.delay = 0
 
     def draw(self,deck):
-        self.hand.append(deck.drawCard())
-        return self
+        newCard = deck.drawCard()
+        self.hand.append(newCard)
+        return newCard
 
     def showHand(self):
         for card in self.hand:
@@ -25,3 +26,9 @@ class Player(object):
     def removeCards(self,cardsList):
         for card in cardsList:
             self.hand.remove(card)
+
+    def emptyHand(self):
+        if not self.hand:
+            return True
+        else:
+            return False
