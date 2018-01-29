@@ -1,7 +1,7 @@
 from cards import Card, suits
 import random
 # encoding=utf8
-
+#TODO może będzie coś w stylu createFunctionalCards w klasie deck narazie i będzie się odpalać po stworzeniu talii?
 
 class Deck(object):
     """ Deck class is build from 54 Cards objects"""
@@ -14,12 +14,13 @@ class Deck(object):
         for s in suits:
             for v in range(1,14):
                 self.cards.append(Card(s,v))
-        if 'joker' in rules:
+        if 'joker' in rules['functional_cards']:
             for j in range(2):
-                self.cards.append(Card("Joker","Joker"))
+                self.cards.append(Card("Joker","Joker",True,True))
 
     def show(self):
         """For testing purposes"""
+        print("Talia wygląda tak:")
         for c in self.cards:
             c.show()
 

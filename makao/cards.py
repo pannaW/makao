@@ -1,15 +1,19 @@
 # encoding=utf8
-suits = ["Spades","Hearts","Diamonds", "Clubs"]
+suits = ["Wino","Czerwo","Dzwonek", "Żołądź"]
 
 
 class Card(object):
     counter = 1
     """ Card class """
-    def __init__(self,suit,value):
+    def __init__(self,suit,value,id=True,joker=False):
         self.suit = suit
         self.value = value
-        self.id = Card.counter
-        Card.counter += 1
+        self.joker = joker
+        if id:
+            self.id = Card.counter
+            Card.counter += 1
+        else:
+            self.id = 0
 
     def __eq__(self,other):
         if other is None:
@@ -18,11 +22,20 @@ class Card(object):
 
     def show(self):
         """Prints the card"""
-        print("card #{}: {} of {}".format(self.id,self.value, self.suit))
+        print("card #{}: {} {}".format(self.id,self.value, self.suit))
+        if self.joker:
+            print("(joker)")
+    def rename(self,suit,value):
+        """ Works only for Jokers"""
+        self.suit = suit
+        self.value = value
+
+    def ResetToJoker(self):
+        self.suit = "Joker"
+        self.value = "Joker"
 
 
-
-        # c1 = {'suit':'hearts', 'value':12}
+# c1 = {'suit':'hearts', 'value':12}
 # c2 = {'suit':'clubs', 'value':13}
 # c3 = {'suit':'spades', 'value':12}
 # card_set = [c1,c2,c3]

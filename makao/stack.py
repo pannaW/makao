@@ -1,4 +1,5 @@
 # encoding=utf8
+from cards import Card, suits
 
 class Stack(object):
     """ Stack on the middle of the board """
@@ -14,21 +15,65 @@ class Stack(object):
 
     def show(self):
         """For testing purposes"""
+        print("Stos wygląda tak:")
         for c in self.cards:
             c.show()
 
-    def receive(self,pickedCards, state):
+    def receive(self,pickedCards, state, rules):
         """
         Odbieranie kart które użytkownik rzucił na stos
         :param pickedCards: lista kart które użytkownik chce rzucić na stos
         :return:
         """
-        #TODO: jeśli valiant_cards_1 to jeśli valiant_cards to tylko jeśli topCard.value == firstCard.value
-        #TODO: jeśli valiant_cards_3 to jeśli valiant_cards to firstCard.value musi być > topCard.value
-        #TODO jeśli stan[asŻądanie], to walidacja tylko jeśli firstCard pasuje kolorem do stan[wartosc]; wyzeruj stan
-        #TODO jeśli stan['joker'], to walidacja tylko jeśli pasuje kolorem lub wartością
-        #chyba zmieniłam zdanie i tu będziemy sprawdzać tylko jeśli as lub joker na wierzchu,a takto będzie inna funkcja
         firstCard, topCard = pickedCards[0], self.cards[-1]
+
+        if state['type'] == 'valiant':
+            if firstCard in valiantCards:
+                if rules['valiant_cards'] == 1:
+                    if firstCard.value == topCard.value: #co z Jokerem
+                        self.cards.extend(pickedCards)
+                        return True
+                    else:
+                        print("Niestety! Zasady zabraniają użycia kart walecznych o innej figurze niż ta na stosie")
+                        return False
+
+                if rules['valiant_cards'] == 2:
+                    if firstCard.value == topCard.value: #co z Jokerem
+                        self.cards.extend(pickedCards)
+                        return True
+                    elif firstCard.suit == topCard.suit:  # co z Jokerem
+                        self.cards.extend(pickedCards)
+                        return True
+                    else:
+                        print("Niestety! Pierwsza karta nie jest w tym samym kolorze co ta na wierzchu!")
+                        return False
+
+                if rules['valiant_cards'] == 3:
+                    if firstCard.value == topCard.value: #co z Jokerem
+                        self.cards.extend(pickedCards)
+                        return True
+                    elif firstCard.suit == topCard.suit:  # co z Jokerem
+                        if firstCard.value > topCard.value:
+                            self.cards.extend(pickedCards)
+                            return True
+                        else:
+                            print("Niestety! Zgodnie z zasadami, karty muszą mieć wyższą wartość niż ta na wierzchu stosu")
+                            return False
+                    else:
+                        print("Niestety! Pierwsza karta nie jest w tym samym kolorze co ta na wierzchu!")
+                        return False
+
+            else:
+                print("Niestety! Podana karta musi być waleczna!")
+                return False
+
+        if state['type'] == 'delay':
+            if firstCard.value == 4:
+                self.cards.extend(pickedCards)
+                return True
+            else:
+                print("Niestety! Potrzebna jest 4.")
+                return False
 
         if state['type'] == 'jackDemand':
             if firstCard.value == state['value'] or firstCard.value == 11:
@@ -38,25 +83,23 @@ class Stack(object):
                 print("Niestety! Wybrana karta nie spełnia wymagań żądania Waleta.")
                 return False
 
-        if state['type'] == 'joker':
-            if firstCard.suit == state['suit'] or firstCard.value == state['value']:
-                self.cards.extend(pickedCards)
-                return True
-            else:
-                print("Niestety! Wybrana karta nie pasuje do tego Jokera.")
-                return False
-
         if state['type'] == 'aceDemand':
-            if firstCard.suit == state['suit'] or firstCard.value == 1:
+            if firstCard.suit == state['value'] or firstCard.value == 1:
                 self.cards.extend(pickedCards)
                 return True
             else:
                 print("Niestety! Wybrana karta nie spełnia wymagań żądania Asa.")
                 return False
 
-        if firstCard.suit == topCard.suit or firstCard.value == topCard.value or firstCard.value == "Joker":
+        if firstCard.suit == topCard.suit or firstCard.value == topCard.value:
             self.cards.extend(pickedCards)
             return True
         else:
             print("Niestety! Wybrana karta nie pasuje do karty na wierzchu stosu.")
             return False
+
+
+valiantCards = [Card(*[s, v, False]) for v in (2, 3) for s in suits] + [Card(s, 13,False) for s in ("Wino","Czerwo")]
+demandCards = [Card(*[s, v, False]) for v in (1, 11) for s in suits]
+delayCards = [Card(*[s, 4, False]) for s in suits]
+functionalCards = delayCards + demandCards + valiantCards
