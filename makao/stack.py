@@ -4,17 +4,16 @@ from cards import Card, suits
 class Stack(object):
     """ Stack on the middle of the board """
     def __init__(self,card):
-        """
-        Creating the stack on the middle of the board
-        """
+        """ Creating the stack on the middle of the board """
         self.cards = []
         self.cards.append(card)
 
     def getTopCard(self):
+        """ Shows top card """
         return self.cards[-1].show()
 
     def show(self):
-        """For testing purposes"""
+        """Rather for testing purposes"""
         print("Stos wygląda tak:")
         for c in self.cards:
             c.show()
@@ -30,7 +29,7 @@ class Stack(object):
         if state['type'] == 'valiant':
             if firstCard in valiantCards:
                 if rules['valiant_cards'] == 1:
-                    if firstCard.value == topCard.value: #co z Jokerem
+                    if firstCard.value == topCard.value:
                         self.cards.extend(pickedCards)
                         return True
                     else:
@@ -38,10 +37,10 @@ class Stack(object):
                         return False
 
                 if rules['valiant_cards'] == 2:
-                    if firstCard.value == topCard.value: #co z Jokerem
+                    if firstCard.value == topCard.value:
                         self.cards.extend(pickedCards)
                         return True
-                    elif firstCard.suit == topCard.suit:  # co z Jokerem
+                    elif firstCard.suit == topCard.suit:
                         self.cards.extend(pickedCards)
                         return True
                     else:
@@ -49,10 +48,10 @@ class Stack(object):
                         return False
 
                 if rules['valiant_cards'] == 3:
-                    if firstCard.value == topCard.value: #co z Jokerem
+                    if firstCard.value == topCard.value:
                         self.cards.extend(pickedCards)
                         return True
-                    elif firstCard.suit == topCard.suit:  # co z Jokerem
+                    elif firstCard.suit == topCard.suit:
                         if firstCard.value > topCard.value:
                             self.cards.extend(pickedCards)
                             return True
@@ -98,6 +97,15 @@ class Stack(object):
             print("Niestety! Wybrana karta nie pasuje do karty na wierzchu stosu.")
             return False
 
+    def addToDeck(self,deck):
+        """ Adding cards from stack to deck """
+        for card in self.cards[:-1]:
+            if card.joker:
+                card.ResetToJoker()
+        deck.cards.extend(self.cards[:-1])
+        deck.shuffle()
+        del self.cards[:-1]
+        return deck
 
 valiantCards = [Card(*[s, v, False]) for v in (2, 3) for s in suits] + [Card(s, 13,False) for s in ("Wino","Czerwo")]
 demandCards = [Card(*[s, v, False]) for v in (1, 11) for s in suits]

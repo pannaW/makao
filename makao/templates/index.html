@@ -1,12 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Strona główna{% endblock %}
 {% block main %}
-    <div class="container">
-        <div class="row">
-            <div class="col s12">
                 <h2>gra Makao</h2>
-                <a href="{{url_for('rules')}}" class="waves-effect waves-light btn">Ustal reguły </a>
-            </div>
-        </div>
-    </div>
+                <a href="{{url_for('players')}}" class="waves-effect waves-light btn"> Rozpocznij grę </a>
 {% endblock %}

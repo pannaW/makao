@@ -3,7 +3,7 @@
 
 class Player(object):
     """ Class Player """
-    def __init__(self,name,soul=False):
+    def __init__(self,name,soul=True):
         """
         Creating Class Player
         :param name: Name of player
@@ -18,6 +18,13 @@ class Player(object):
         newCard = deck.drawCard()
         self.hand.append(newCard)
         return newCard
+
+    def takePunishement(self, PunishementValue, deck):
+        i = 0
+        while i < PunishementValue:
+            self.draw(deck)
+            i += 1
+        return self
 
     def showHand(self):
         for card in self.hand:

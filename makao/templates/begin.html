@@ -1,56 +1,56 @@
 {% extends "base.html" %}
 {% block title %} Podsumowanie {% endblock %}
 {% block main %}
-<div class="container">
-    <div class="row">
-        <div class="s12">
-            <h1> Podsumowanie </h1>
-                <h2>Zasady gry</h2>
+
+                    <h3> Użytkownicy </h3>
+                    <ul>
+                        {% for name in players_names %}
+                        <li> {{ name }} </li>
+                        {% endfor %}
+                    </ul>
+
                     <h3> Dodatkowe karty funkcyjne </h3>
                     <p> Jakie dodatkowe karty funkcyjne będą występować w rozgrywce? </p>
-                    {% if 'queen' in functional_cards %}
-                     Dama Pik ("moc" : unieważnia karty bitne, tj. 2, 3, król karo, król pik)
+                    {% if 'queen' in rules.functional_cards %}
+                    -> Dama Pik ("moc" : unieważnia karty bitne, tj. 2, 3, król karo, król pik)
                     {% endif %}
                     {% if 'joker' in functional_cards %}
-                    Joker ("moc" : tzw. wildcard, zastępuję dowolną wybraną kartę)
+                    -> Joker ("moc" : tzw. wildcard, zastępuję dowolną wybraną kartę)
                     {% endif %}
 
                     <h3>Zakończenie gry </h3>
                     <p> Kiedy następuje koniec gry? </p>
-                    {% if end_game == 1 %}
-                    Kiedy w grze zostanie tylko jeden gracz
-                    {% elif end_game == 2 %}
-                    Kiedy pierwszy z graczy pozbęcie się kart
+                    {% if rules.end_game == 1 %}
+                    -> Kiedy w grze zostanie tylko jeden gracz
+                    {% elif rules.end_game == 2 %}
+                    -> Kiedy pierwszy z graczy pozbęcie się kart
                     {% endif %}
 
                     <h3> Wykładanie kart </h3>
                     <p>Ile kart gracz może wyłożyć jednocześnie? <br />
                         (Jeśli w dopuściłeś do użycia Jokery, również 5 oraz 6) </p>
-                    {% if putting_cards == 1 %}
-                    <p> 1, 3 , 4</p>
-                    {% elif putting_cards == 2 %}
-                    1,2, 3 , 4
+                    {% if rules.putting_cards == 1 %}
+                    -> 1, 3 , 4
+                    {% elif rules.putting_cards == 2 %}
+                    -> 1, 2, 3 , 4
                     {% endif %}
 
                     <h3> Ciągnięcie kart </h3>
                     <p> Co gracz może zrobić po wyciągnięciu kart? </p>
-                    {% if taking_cards == 1 %}
-                     Nic, kończy ruch
-                    {% elif taking_cards == 2 %}
-                    Wyłożyć kartę którą wyciągnął
+                    {% if rules.taking_cards == 1 %}
+                     -> Nic, kończy ruch
+                    {% elif rules.taking_cards == 2 %}
+                     -> Wyłożyć kartę którą wyciągnął
                     {% elif taking_cards == 3 %}
-                    Wyłożyć kartę którą wyciągnął, oraz pozostałe pasujące do niej karty
+                     -> Wyłożyć kartę którą wyciągnął, oraz pozostałe pasujące do niej karty
                     {% endif %}
                     <h3> Karty bitne  </h3>
                     <p> Jakimi kartami gracz może odpowiedzieć na atak kartami bitnymi? </p>
-                    {% if valiant_cards == 1 %}
-                    Kartą o tej samej figurze (2, gdy na stos rzucono 2)
-                    {% elif valiant_cards == 2 %}
-                    Kartą o innej figurze, jeśli pasuje kolorem (2 kier gdy na stos rzucono 3 kier)
-                    {% elif valiant_cards == 3 %}
-                     Kartą o innej,<strong>wyższej wartością </strong> figurze jeśli pasuje kolorem (króla karo gdy na stos rzucono 3 karo)
+                    {% if rules.valiant_cards == 1 %}
+                     -> Kartą o tej samej figurze (2, gdy na stos rzucono 2)
+                    {% elif rules.valiant_cards == 2 %}
+                     -> Kartą o innej figurze, jeśli pasuje kolorem (2 kier gdy na stos rzucono 3 kier)
+                    {% elif rules.valiant_cards == 3 %}
+                     -> Kartą o innej,<strong>wyższej wartością </strong> figurze jeśli pasuje kolorem (króla karo gdy na stos rzucono 3 karo)
                     {% endif %}
-        </div>
-    </div>
-</div>
 {% endblock %}

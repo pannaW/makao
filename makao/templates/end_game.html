@@ -1,0 +1,9 @@
+{% main block %}
+
+<h2> Wygrani: </h2>
+<ol>
+    {% for name in winners_names %}
+        <li> {{ name }} </li>
+    {% endfor %}
+</ol>
+{% endblock %}

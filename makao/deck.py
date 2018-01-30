@@ -33,6 +33,13 @@ class Deck(object):
     def drawCard(self):
         return self.cards.pop()
 
+    def isSufficient(self,cardsToTake):
+        """ Checking if there's enough cards in deck to take from it"""
+        if cardsToTake >= len(self.cards):
+            return False
+        else:
+            return True
+
     #To będzie bardzo pomocna funkcja ale niekoniecznie w decku, bardziej w ręce
     def findById(self,id):
         for card in self.cards:
