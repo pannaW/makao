@@ -1,9 +1,18 @@
 {% extends "base.html" %}
 {% block title %} Gra {% endblock %}
-
 {% block main %}
+Karta środka:
+{{ topCard.id }}
+<img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
+{{ topCard.suit }}, {{ topCard.value }}
 
 
+<h3> Twoje karty: </h3>
+    {% for card in player.hand %}
+     <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+    {% endfor %}
+
+<h3> Jakiego koloru żądasz? </h3>
 <form action="{{ url_for('demand') }}" method="get" id="ace">
     {% for suit in suits %}
         <p>

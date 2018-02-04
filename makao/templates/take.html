@@ -2,6 +2,20 @@
 {% block title %} Gra {% endblock %}
 {% block main %}
 
+<h2> Gra użytkownik: {{ player.name }} </h2>
+<b> Informacje </b>
+<p> Kolejka nr. {{ game.counter+1 }} </p>
+<p> Stan gry: {{ game.state }} </p>
+<p> W talii zostało: {{ game.deck.cards|length }} </p>
+{% for competitor in competitors %}
+<p> Twój przeciwnik {{ competitor.name }} ma {{ competitor.hand|length }} kart </p>
+{% endfor %}
+
+Karta środka:
+{{ topCard.id }}
+<img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
+{{ topCard.suit }}, {{ topCard.value }}
+
 <h3> Twoje karty teraz to: </h3>
     {% for card in player.hand %}
      <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">

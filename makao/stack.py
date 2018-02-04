@@ -45,5 +45,5 @@ class Stack(object):
 valiantCards = [Card(*[s, v, 0]) for v in (2, 3) for s in suits] + [Card(s, 13, 0) for s in ("Wino","Czerwo")]
 demandCards = [Card(*[s, v,0]) for v in (1, 11) for s in suits]
 delayCards = [Card(*[s, 4, 0]) for s in suits]
-jokerCards = [Card(*["Joker", "Joker", 0] )]
+jokerCards = [Card(*["Joker", 0, 0] )]
 functionalCards = delayCards + demandCards + valiantCards + jokerCards

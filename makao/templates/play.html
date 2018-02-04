@@ -2,6 +2,7 @@
 {% block title %} Gra {% endblock %}
 {% block main %}
 
+
 <h2> Gra użytkownik: {{ player.name }} </h2>
 <b> Informacje </b>
 <p> Kolejka nr. {{ game.counter+1 }} </p>
@@ -15,6 +16,10 @@ Karta środka:
 {{ topCard.id }}
 <img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
 {{ topCard.suit }}, {{ topCard.value }}
+<br>
+{% if topCard.joker %}
+Ten Joker to umownie: {{ values[topCard.value] }} {{ topCard.suit }}
+{% endif %}
 
 
 <h3> Twoje karty: </h3>

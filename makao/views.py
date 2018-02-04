@@ -2,26 +2,9 @@
 import pickle
 from flask import render_template, session, request, redirect, url_for,flash
 from makao import app
-from makao.cards import suits,values
+from makao.cards import suits, values
 from makao.player import Player
 from makao.gameObject import Game
-
-# player1 = Player("Bob")
-# player2 = Player("Dylan")
-# player3 = Player("Ann")
-# player4 = Player("Scott")
-#
-# players_list = [player1, player2,player3]
-#
-# rules_list = {
-#         'putting_cards': 2,
-#         'taking_cards': 3,
-#         'functional_cards': ['queen', 'joker'],
-#         'end_game': 1,
-#         'valiant_cards': 2
-#         }
-#
-# game = Game(players_list, rules_list)
 
 
 def pickle_read(filename):
@@ -121,7 +104,7 @@ def play():
         return render_template('player_delayed.html', player=game.currentPlayer)
     else:
         return render_template('play.html', game=game, player=game.currentPlayer, competitors=game.showCompetitors(),
-                               topCard=game.stack.getTopCard())
+                               topCard=game.stack.getTopCard(), values=values)
 
 
 @app.route('/pick_cards', methods=['GET','POST'])
@@ -133,17 +116,18 @@ def pick_cards():
     if request.args.get("end"):
         return redirect(url_for('validation_1'))
 
-    if request.method == 'POST':
-        card_index = request.form.get('card',type=int)
-        if game.currentPlayer.hand[card_index].joker:
-            session['joker_index'] = card_index
+    if request.args.get("value"):
+        card_index = request.args.get("value",type=int)
+        #if NOT RENAMED Joker
+        if game.currentPlayer.hand[card_index].value == 0:
+            session['joker_index'] = int(card_index)
             return redirect(url_for('rename_joker'))
         else:
             game.currentPlayer.pickCard(card_index)
             pickle_write("game.pickle",game)
 
     return render_template('pick_cards.html',game=game, player=game.currentPlayer,
-                           pickedCards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard())
+                           pickedCards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(), values=values)
 
 
 @app.route('/joker')
@@ -151,15 +135,15 @@ def rename_joker():
     game = pickle_read("game.pickle")
 
     if request.args.get('suit') and request.args.get('value'):
-        suit = request.args.get('suit')
+        suit = request.args.get('suit',type=str)
         value = request.args.get('value',type=int)
         game.currentPlayer.hand[session['joker_index']].renameJoker(suit,value)
         pickle_write("game.pickle", game)
-        # session.pop('joker_index', None)
+        session.pop('joker_index', None)
         return redirect(url_for('pick_cards'))
 
     return render_template('joker.html',game=game, player=game.currentPlayer,topCard=game.stack.getTopCard(),
-                           pickedCards=game.currentPlayer.pickedCards,values=values,suits=suits)
+                           values=values,suits=suits)
 
 
 @app.route('/validation_1')
@@ -176,8 +160,9 @@ def validation_1():
         game.currentPlayer.cancelPickedCards()
         pickle_write("game.pickle", game)
         flash(result)
+
         if session.get('takeProcessFlag'):
-            session.pop('takeProcessFlag', None)
+            session.pop('takeProcessFlag',None)
             return redirect(url_for('next_player'))
         else:
             return redirect(url_for('play'))
@@ -218,6 +203,7 @@ def validation_2():
 
 @app.route('/demand')
 def demand():
+    game = pickle_read("game.pickle")
     if session.get('demand') == "Ace":
         # 2. Interpretuj wybór
         if request.args.get('suit'):
@@ -227,16 +213,17 @@ def demand():
                 return redirect(url_for('next_player'))
             #2b. Jeśli żąda
             else:
-                game = pickle_read("game.pickle")
                 game.state['type'] = 'aceDemand'
                 game.state['value'] = request.args.get('suit',type=str)
                 pickle_write("game.pickle", game)
                 session.pop('demand', None)
                 return redirect(url_for('next_player'))
         #1. Wyrenderuj formularz
-        return render_template('ace_demand.html',suits=suits)
+        return render_template('ace_demand.html',game=game, player=game.currentPlayer,
+                           pickedCards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(),suits=suits)
 
     elif session['demand'] == "Jack":
+        game = pickle_read("game.pickle")
         #2. Intepretuj wybór
         if request.args.get('value'):
             session.pop('demand', None)
@@ -248,13 +235,14 @@ def demand():
             else:
                 game = pickle_read("game.pickle")
                 game.state['type'] = 'jackDemand'
-                game.state['value'] = request.form.get('value',type=int)
+                game.state['value'] = request.args.get('value',type=int)
                 game.state['demandTurns'] = len(game.players) + 1
                 session.pop('demand', None)
                 pickle_write("game.pickle", game)
                 return redirect(url_for('next_player'))
         #1. Wyrenderuj formularz
-        return render_template('jack_demand.html')
+        return render_template('jack_demand.html',game=game, player=game.currentPlayer,
+                           pickedCards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard())
 
 
 @app.route('/take')
@@ -297,7 +285,8 @@ def take():
         game.currentPlayer.draw(game.deck)
         pickle_write("game.pickle", game)
 
-        return render_template('take.html', player=game.currentPlayer, rules=game.rules)
+        return render_template('take.html',game=game, player=game.currentPlayer,competitors=game.showCompetitors(),
+                               topCard=game.stack.getTopCard(), rules=game.rules)
 
 
 @app.route('/take/joker')
@@ -315,12 +304,13 @@ def take_rename_joker():
         else:
             return redirect(url_for('pick_cards'))
 
-    return render_template('joker.html', game=game, player=game.currentPlayer, topCard=game.stack.getTopCard(),
-                           pickedCards=game.currentPlayer.pickedCards, values=values, suits=suits, take=True)
+    return render_template('joker.html',topCard=game.stack.getTopCard(), game=game, player=game.currentPlayer,
+                            values=values, suits=suits, take=True)
 
 
 @app.route('/next-player')
 def next_player():
+    session.pop('takeProcessFlag', None)
     game = pickle_read("game.pickle")
     game.nextPlayer()
     pickle_write("game.pickle",game)
