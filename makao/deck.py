@@ -1,4 +1,4 @@
-from cards import Card, suits
+from makao.cards import Card, suits
 import random
 # encoding=utf8
 #TODO może będzie coś w stylu createFunctionalCards w klasie deck narazie i będzie się odpalać po stworzeniu talii?
@@ -11,12 +11,15 @@ class Deck(object):
 
     def build(self,rules):
         """Builds new deck from cards"""
+        id = 1
         for s in suits:
             for v in range(1,14):
-                self.cards.append(Card(s,v))
+                self.cards.append(Card(s,v,id))
+                id += 1
         if 'joker' in rules['functional_cards']:
             for j in range(2):
-                self.cards.append(Card("Joker","Joker",True,True))
+                self.cards.append(Card("Joker",0,id,True))
+                id += 1
 
     def show(self):
         """For testing purposes"""
@@ -34,7 +37,7 @@ class Deck(object):
         return self.cards.pop()
 
     def isSufficient(self,cardsToTake):
-        """ Checking if there's enough cards in deck to take from it"""
+        """ Checks if there are enough cards in deck to take from it"""
         if cardsToTake >= len(self.cards):
             return False
         else:

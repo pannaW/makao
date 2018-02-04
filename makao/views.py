@@ -1,8 +1,39 @@
 # encoding=utf8
+import pickle
 from flask import render_template, session, request, redirect, url_for,flash
 from makao import app
+from makao.cards import suits,values
 from makao.player import Player
 from makao.gameObject import Game
+
+# player1 = Player("Bob")
+# player2 = Player("Dylan")
+# player3 = Player("Ann")
+# player4 = Player("Scott")
+#
+# players_list = [player1, player2,player3]
+#
+# rules_list = {
+#         'putting_cards': 2,
+#         'taking_cards': 3,
+#         'functional_cards': ['queen', 'joker'],
+#         'end_game': 1,
+#         'valiant_cards': 2
+#         }
+#
+# game = Game(players_list, rules_list)
+
+
+def pickle_read(filename):
+    pickle_in = open(filename, "rb")
+    obj = pickle.load(pickle_in)
+    return obj
+
+
+def pickle_write(filename,obj):
+    pickle_out = open(filename, "wb")
+    pickle.dump(obj, pickle_out)
+    pickle_out.close()
 
 
 app.secret_key = "super secret key"
@@ -40,17 +71,13 @@ def rules():
     if request.method == 'POST':
             if request.form.get('end_game') and request.form.get('taking_cards') \
             and request.form.get('putting_cards') and request.form.get('valiant_cards'):
-                rules = dict()
-                rules['functional_cards'] = list()
-                if request.form.get('queen'):
-                    rules['functional_cards'] += ['queen']
-                if request.form.get('joker'):
-                    rules['functional_cards'] += ['joker']
-                rules['end_game'] = int(request.form.get('end_game'))
-                rules['taking_cards'] = int(request.form.get('taking_cards'))
-                rules['putting_cards'] = int(request.form.get('putting_cards'))
-                rules['valiant_cards'] = int(request.form.get('valiant_cards'))
-                #init rules
+
+                rules = {'functional_cards': request.form.getlist('functional_cards'),
+                         'end_game': int(request.form.get('end_game')),
+                         'taking_cards': int(request.form.get('taking_cards')),
+                         'putting_cards': int(request.form.get('putting_cards')),
+                         'valiant_cards' : int(request.form.get('valiant_cards'))}
+               #init rules
                 session['rules'] = rules
                 return redirect(url_for('begin'))
             else:
@@ -61,50 +88,249 @@ def rules():
 
 @app.route('/begin',methods=['GET','POST'])
 def begin():
-    """ Summary and init of everything """
-    return render_template('begin.html',rules=session['rules'],players_names=session['players_names'])
+    """ Summary and init """
 
-
-@app.route('/game',methods=['GET','POST'])
-def game():
-    #init players
+    # init Players
     players_list = []
     for player in session['players_names']:
         players_list += [Player(player)]
-    #init game
-    game = Game(players_list,session['rules'])
+    # init Game
+    game = Game(players_list, session['rules'])
 
-    while not game.isEnd():
-        game.turn(game.players[game.currentPlayerId])
-        # ...
+    pickle_write("game.pickle",game)
+
+    session.pop('players_names', None)
+    session.pop('rules', None)
+
+    return render_template('begin.html',rules=game.rules,players=game.players)
 
 
-        game.currentPlayerId += 1
+@app.route('/play',methods=['GET','POST'])
+def play():
+    game = pickle_read("game.pickle")
 
-        if game.currentPlayerId == len(game.players):
-            game.currentPlayerId = 0
+    if game.isEnd():
+        return redirect(url_for('end_game'))
 
-    for winner in game.winners:
-        session['winners_names'] += winner.name
-    return redirect(url_for('end_game'))
+    game.setCurrentPlayer()
+    game.jackDemandEndCondition()
+    pickle_write("game.pickle", game)
+
+    if game.isCurrentPlayerSkipping():
+        pickle_write("game.pickle", game)
+        return render_template('player_delayed.html', player=game.currentPlayer)
+    else:
+        return render_template('play.html', game=game, player=game.currentPlayer, competitors=game.showCompetitors(),
+                               topCard=game.stack.getTopCard())
+
+
+@app.route('/pick_cards', methods=['GET','POST'])
+def pick_cards():
+    """ Let player picks cards one by one """
+    game = pickle_read("game.pickle")
+    session.pop('joker_index', None)
+
+    if request.args.get("end"):
+        return redirect(url_for('validation_1'))
+
+    if request.method == 'POST':
+        card_index = request.form.get('card',type=int)
+        if game.currentPlayer.hand[card_index].joker:
+            session['joker_index'] = card_index
+            return redirect(url_for('rename_joker'))
+        else:
+            game.currentPlayer.pickCard(card_index)
+            pickle_write("game.pickle",game)
+
+    return render_template('pick_cards.html',game=game, player=game.currentPlayer,
+                           pickedCards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard())
+
+
+@app.route('/joker')
+def rename_joker():
+    game = pickle_read("game.pickle")
+
+    if request.args.get('suit') and request.args.get('value'):
+        suit = request.args.get('suit')
+        value = request.args.get('value',type=int)
+        game.currentPlayer.hand[session['joker_index']].renameJoker(suit,value)
+        pickle_write("game.pickle", game)
+        # session.pop('joker_index', None)
+        return redirect(url_for('pick_cards'))
+
+    return render_template('joker.html',game=game, player=game.currentPlayer,topCard=game.stack.getTopCard(),
+                           pickedCards=game.currentPlayer.pickedCards,values=values,suits=suits)
+
+
+@app.route('/validation_1')
+def validation_1():
+    """
+    Checks if (1) cards were picked, (2) correct amount of cards were picked (3) all cards have the same value
+    :return: redirect
+    """
+    game = pickle_read("game.pickle")
+    result = game.checkPickedCards(game.currentPlayer.pickedCards)
+
+    if isinstance(result,str):                  #error
+        game.resetJokers(game.currentPlayer.pickedCards)
+        game.currentPlayer.cancelPickedCards()
+        pickle_write("game.pickle", game)
+        flash(result)
+        if session.get('takeProcessFlag'):
+            session.pop('takeProcessFlag', None)
+            return redirect(url_for('next_player'))
+        else:
+            return redirect(url_for('play'))
+    else:
+        return redirect(url_for('validation_2'))
+
+
+@app.route('/validation_2')
+def validation_2():
+    """Checks if (1) cards match top card (2) if cards are functional."""
+    game = pickle_read("game.pickle")
+    result = game.matchWithTopCard(game.currentPlayer.pickedCards)
+
+    if isinstance(result,str):                  #error
+        game.resetJokers(game.currentPlayer.pickedCards)
+        game.currentPlayer.cancelPickedCards()
+        pickle_write("game.pickle", game)
+        flash(result)
+        if session.get('takeProcessFlag'):
+            session.pop('takeProcessFlag', None)
+            return redirect(url_for('next_player'))
+        else:
+            return redirect(url_for('play'))
+    else:
+        game.stack.addToStack(game.currentPlayer.pickedCards)
+        result = game.isFunctional(game.currentPlayer.pickedCards)
+        game.currentPlayer.removeCards()
+
+        if result == "Ace" or result == "Jack":
+            session['demand'] = result
+
+            pickle_write("game.pickle", game)
+            return redirect(url_for('demand'))
+        else:
+            pickle_write("game.pickle", game)
+            return redirect(url_for('next_player'))
+
+
+@app.route('/demand')
+def demand():
+    if session.get('demand') == "Ace":
+        # 2. Interpretuj wybór
+        if request.args.get('suit'):
+            # 2a. Jeśli niczego nie żąda
+            if request.args.get('suit') == "no":
+                session.pop('demand', None)
+                return redirect(url_for('next_player'))
+            #2b. Jeśli żąda
+            else:
+                game = pickle_read("game.pickle")
+                game.state['type'] = 'aceDemand'
+                game.state['value'] = request.args.get('suit',type=str)
+                pickle_write("game.pickle", game)
+                session.pop('demand', None)
+                return redirect(url_for('next_player'))
+        #1. Wyrenderuj formularz
+        return render_template('ace_demand.html',suits=suits)
+
+    elif session['demand'] == "Jack":
+        #2. Intepretuj wybór
+        if request.args.get('value'):
+            session.pop('demand', None)
+            # 2a. Jeśli niczego nie żąda
+            if request.args.get('value') == "no":
+                session.pop('demand', None)
+                return redirect(url_for('next_player'))
+            # 2b. Jeśli żąda
+            else:
+                game = pickle_read("game.pickle")
+                game.state['type'] = 'jackDemand'
+                game.state['value'] = request.form.get('value',type=int)
+                game.state['demandTurns'] = len(game.players) + 1
+                session.pop('demand', None)
+                pickle_write("game.pickle", game)
+                return redirect(url_for('next_player'))
+        #1. Wyrenderuj formularz
+        return render_template('jack_demand.html')
+
+
+@app.route('/take')
+def take():
+    game = pickle_read("game.pickle")
+
+    if request.args.get("answer"):
+        if request.args.get("answer", type=str) == "no":
+            return redirect(url_for('next_player'))
+        elif request.args.get("answer", type=str) == "yes":
+            game.currentPlayer.pickCard(-1)
+            session['takeProcessFlag'] = True
+            pickle_write("game.pickle", game)
+            if game.currentPlayer.pickedCards[0].joker:         #tego się nie da też jakoś podciągnąć pod normalnego jokera?
+                return redirect(url_for('take_rename_joker'))
+
+            else:
+                if game.rules["taking_cards"] == 2:
+                    return redirect(url_for('validation_2'))
+                else:
+                    return redirect(url_for('pick_cards'))
+
+    if game.state['type'] == 'delay':
+        game.currentPlayer.delay = game.state['value']
+        game.resetState()
+        pickle_write("game.pickle", game)
+        return render_template('take_delay.html',player=game.currentPlayer)
+
+    if game.state['type'] == 'valiant':
+        if not game.deck.isSufficient(game.state['value']):
+            game.stack.addToDeck(game.deck)
+        game.currentPlayer.takePunishement(game.state['value'], game.deck)
+        game.resetState()
+        pickle_write("game.pickle", game)
+        return render_template('take_punishement.html', player=game.currentPlayer)
+    else:
+        if not game.deck.isSufficient(2):
+            game.stack.addToDeck(game.deck)
+
+        game.currentPlayer.draw(game.deck)
+        pickle_write("game.pickle", game)
+
+        return render_template('take.html', player=game.currentPlayer, rules=game.rules)
+
+
+@app.route('/take/joker')
+def take_rename_joker():
+    game = pickle_read("game.pickle")
+
+    if request.args.get('suit') and request.args.get('value'):
+        suit = request.args.get('suit', type=str)
+        value = request.args.get('value', type=int)
+        game.currentPlayer.pickedCards[0].renameJoker(suit, value)
+        pickle_write("game.pickle", game)
+        session.pop('joker_index', None)
+        if game.rules["taking_cards"] == 2:
+            return redirect(url_for('validation_2'))
+        else:
+            return redirect(url_for('pick_cards'))
+
+    return render_template('joker.html', game=game, player=game.currentPlayer, topCard=game.stack.getTopCard(),
+                           pickedCards=game.currentPlayer.pickedCards, values=values, suits=suits, take=True)
+
+
+@app.route('/next-player')
+def next_player():
+    game = pickle_read("game.pickle")
+    game.nextPlayer()
+    pickle_write("game.pickle",game)
+    return redirect(url_for('play'))
+
 
 @app.route('/end')
 def end_game():
-    return render_template('end_game.html', winners_names=session['winners_names'])
-
-
-#====================================================================================================
-
-# @app.route('/game/player/')             #<int:id> ?
-# def game():
-#     """ogólne warunki końca gry itd.
-# render: currentPlayer (with his cards and all), stack (top card), stan gry
-# (turn) o ile nie stoi kolejki
-#     #(choose)wybór akcji: take lub put
-#         #(letUserPickCards) czyli niech wybiera sobie karty które chce wyrzucić
-#         #(put) czyli sprawdzamy czy pasują do siebie
-# """
-
+    game = pickle_read("game.pickle")
+    return render_template('end_game.html', winners=game.winners)
 
 
 # @app.route('/game/player/next')         #jaką to ma funkcję

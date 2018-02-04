@@ -1,19 +1,15 @@
 # encoding=utf8
 suits = ["Wino","Czerwo","Dzwonek", "Żołądź"]
+values = ["Joker","As","2","3","4","5","6","7","8","9","10","Walet","Dama","Król"]
 
 
 class Card(object):
-    counter = 1
     """ Card class """
-    def __init__(self,suit,value,id=True,joker=False):
+    def __init__(self, suit, value, id, joker=False):
         self.suit = suit
         self.value = value
         self.joker = joker
-        if id:
-            self.id = Card.counter
-            Card.counter += 1
-        else:
-            self.id = 0
+        self.id = id
 
     def __eq__(self,other):
         if other is None:
@@ -22,14 +18,15 @@ class Card(object):
 
     def show(self):
         """Prints the card"""
-        print("card #{}: {} {}".format(self.id,self.value, self.suit))
+        print("karta #{}: {} {}".format(self.id,values[self.value], self.suit))
         if self.joker:
             print("(joker)")
-    def rename(self,suit,value):
+
+    def renameJoker(self,suit,value):
         """ Works only for Jokers"""
         self.suit = suit
         self.value = value
 
     def ResetToJoker(self):
         self.suit = "Joker"
-        self.value = "Joker"
+        self.value = 0

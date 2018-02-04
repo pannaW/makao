@@ -11,8 +11,16 @@ class Player(object):
         """
         self.name = name
         self.hand = []
+        self.pickedCards = []
         self.soul = soul
         self.delay = 0
+
+    def pickCard(self,index):
+        self.pickedCards.append(self.hand.pop(index))
+
+    def cancelPickedCards(self):
+        self.hand.extend(self.pickedCards)
+        self.pickedCards = []
 
     def draw(self,deck):
         newCard = deck.drawCard()
@@ -30,9 +38,8 @@ class Player(object):
         for card in self.hand:
             card.show()
 
-    def removeCards(self,cardsList):
-        for card in cardsList:
-            self.hand.remove(card)
+    def removeCards(self):
+        self.pickedCards = []
 
     def emptyHand(self):
         if not self.hand:

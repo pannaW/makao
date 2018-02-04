@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %} Gra {% endblock %}
+{% block main %}
+
+<h3> Twoje karty teraz to: </h3>
+    {% for card in player.hand %}
+     <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+    {% endfor %}
+    <a href="{{ url_for('next_player') }}"><button> Okej </button></a>
+
+{% endblock %}

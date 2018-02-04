@@ -1,11 +1,14 @@
 # encoding=utf8
-from stack import Stack, valiantCards, demandCards, delayCards, functionalCards
-from deck import Deck
-from player import Player
+from makao.stack import Stack, valiantCards, demandCards, delayCards, functionalCards
+from makao.deck import Deck
+from makao.player import Player
+import pickle
 
 
 class Game(object):
-    currentPlayerId = 0
+    counter = 0
+    currentPlayer = 0
+
     def __init__(self, players, rules):
         self.rules = rules
         self.state = {'type': '', 'value': 0}
@@ -14,8 +17,35 @@ class Game(object):
         self.winners = []
         self.players = players
         self.deal()
-        self.stack = Stack(self.deck.drawCard())
-        self.i = 0
+        self.stack = Stack(self.deck)
+
+    def setCurrentPlayer(self):
+        self.currentPlayer = self.players[self.counter % len(self.players)]
+
+    def isCurrentPlayerSkipping(self):
+        if self.currentPlayer.delay:
+            self.currentPlayer.delay -= 1
+            return True
+        else:
+            return False
+
+    def nextPlayer(self):
+        """Checks if player won, count down jackDemand if active,
+           add to the game counter (-> next player) """
+
+        if self.currentPlayer.emptyHand():
+            self.addToWinners(self.currentPlayer)
+
+        if self.state['type'] == 'jackDemand':
+            self.state['demandTurns'] -= 1
+
+        self.counter += 1
+        return
+
+    def jackDemandEndCondition(self):
+        if self.state['type'] == 'jackDemand':
+            if self.state['demandTurns'] == 0:
+                self.resetState()
 
     def deal(self):
         """ Splitting 5 cards to each player """
@@ -31,138 +61,191 @@ class Game(object):
         """ Check if game is over """
         if self.rules['end_game'] == 1:
             if len(self.players) < 2:
-                return 1
+                return True
         elif self.rules['end_game'] == 2:
             if self.winners:
-                return 2
+                return True
         else:
             return False
 
     def turn(self, player):
         """Single player's turn """
-        self.currentPlayer = player
+        print("\n--------------------------------------------------------------\n"
+              "Gra gracz: %s" % player.name)
 
-        print("Gra gracz: %s" % player.name)
+        self.jackDemandEndCondition()
 
         if player.delay:
             player.delay -= 1
             print("Tracisz kolejkę. Pozostało %d kolejek do czekania" % player.delay)
-            return True
+            return
 
         else:
-            self.renderPlayerView(player)
-            print(self.state)
-
-            if self.state['type'] == 'jackDemand':
-                if player == self.state['demander']:
-                    self.choose(player)
-                    self.resetState()
-                else:
-                    self.choose(player)
-            else:
-                self.choose(player)
-
-        # po wyrzuceniu sprawdzam czy ma jeszcze karty
-            if player.emptyHand():
-                print("Dodaję Cię do zwycięzców!")
-                self.addToWinners(player)
-                return False
-
+            self.choose(player)
             print("Po Twoim ruchu sytuacja wygląda tak:")
             self.renderPlayerView(player)
             print(self.state)
-            return True
+            return
+
+
+
+
+    def resetJokers(self,pickedCards):
+        for card in pickedCards:
+            if card.joker:
+                # print("Zmieniamy Twoją kartę z powrotem na Jokera\n")
+                card.ResetToJoker()
 
     def choose(self, player):
         """Expect user to choose put or take"""
+        self.renderPlayerView(player)
+        print(self.state)
+
         while True:
             action = input("Wybierz: 'put' or 'take'\n")
             if action == 'put':
-                pickedCards = self.put(self.letUserPickCardsToPut(player))
+                pickedCards = self.checkPickedCards(self.letUserPickCardsToPut(player))
                 if pickedCards:
-                    if self.matchWithTopCard(pickedCards, player):  #TODO dama wino
-                        if self.state['type'] == 'aceDemand':  # narazie droga na okrętkę;
-                            self.resetState()  # bo to się flushuje po pierwszym dopasowaniu;
-                        self.isFunctional(pickedCards, player)
-                        print(self.state)
+                    if self.matchWithTopCard(pickedCards):
+                        self.isFunctional(pickedCards)
                         break
                     else:
-                        for card in pickedCards:
-                            if card.joker:
-                                print("Zmieniamy Twoją kartę z powrotem na Jokera\n")
-                                card.ResetToJoker()
+                        self.resetJokers(pickedCards)
                         print("Co chcesz zrobić?")
                 else:
-                    for card in pickedCards:
-                        if card.joker:
-                            print("Zmieniamy Twoją kartę z powrotem na Jokera\n")
-                            card.ResetToJoker()
+                    self.resetJokers(pickedCards)
             elif action == 'take':
                 if self.state['type'] == 'delay':
                     player.delay = self.state['value']
-                    print("Nie bierzesz kart, ale tracisz %d kolejek" % self.players[self.players.index(player)].delay)
+                    print("{} tracisz {} kolejek".format(player.name, self.players[self.players.index(player)].delay))
                     self.resetState()
                     break
                 if self.state['type'] == 'valiant':
-                    # sprawdzenie czy wystarczy kart w decku
-                    if not self.deck.cards or not self.deck.isSufficient(self.state['value']):
+                    if not self.deck.isSufficient(self.state['value']):
                         self.stack.addToDeck(self.deck)
-                    # weź karty kary (żadne dokładki nie są tu możliwe) zresetuj stan
                     player.takePunishement(self.state['value'],self.deck)
                     self.resetState()
                     break
                 else:
-                    # sprawdzenie czy wystarczy kart w decku
-                    if len(self.deck.cards) < 2:
+                    if not self.deck.isSufficient(2):
                         self.stack.addToDeck(self.deck)
                     self.take(player)
                     break
 
-    def put(self,pickedCards):
+
+    def checkPickedCards(self,pickedCards):
         """ Walidacja wybranych kart:
                 czy podał karty
-                czy karta jest Jokerem (SPRAWDZA KAŻÐĄ KARTĄ)
                     określ wartość i figurę
                 czy są tej samej figury
                 czy można wyrzucić dwie karty
                     czy nie ma dwóch kart
-            :param  player      object
-            :return pickedCards list
+            :param  (list) pickedCards
+            :return (string) error message / (list) pickedCards
         """
 
         if pickedCards:
-            for card in pickedCards:
-                if card.value == "Joker":
-                    answer = list()
-                    answer += [input("Jakiego koloru ma być ten Joker?")]
-                    answer += [int(input("Jakiej figury ma być ten Joker?"))]
-                    card.rename(*answer)
-
             if all(card.value == pickedCards[0].value for card in pickedCards):
                 if self.rules['putting_cards'] == 1:
                     if len(pickedCards) != 2 or self.state['type'] == 'jackDemand':
                         return pickedCards
                     else:
-                        print("Zasady zabraniają wyrzucania 2 kart!")
-                        return []
+                        error = "Zasady zabraniają wyrzucania 2 kart!"
+                        return error
                 else:
                     return pickedCards
             else:
-                print("Karty powinny być tej samej figury!")
-                return []
+                error = "Karty powinny być tej samej figury!"
+                return error
         else:
-            print("Nie wybrałeś kart!")
-            return []
+            error = "Nie wybrałeś kart!"
+            return error
 
-    def matchWithTopCard(self, pickedCards, player):
-        result = self.stack.receive(pickedCards, self.state, self.rules)
-        if result:
-            player.removeCards(pickedCards)
-            return True
-        else:
-            return False
+    def matchWithTopCard(self, pickedCards):
+            """
+            Conditions over cards match, considers all game states
+            :param pickedCards: cards intended to be add to stack
+            :return: (Boolean) True / (str) error message
+            """
+            firstCard, topCard = pickedCards[0], self.stack.cards[-1]
+            #1. If Queen Spades
 
-    def isFunctional(self, cardList,currentPlayer):
+            if 'queen' in self.rules['functional_cards']:
+                if len(pickedCards) == 1:
+                    if firstCard.value == 12 and firstCard.suit == 'Wino':
+                        self.resetState()
+                        return True
+
+                if topCard.value == 12 and topCard.suit == 'Wino':
+                    return True
+
+            #2. If valiant state
+            if self.state['type'] == 'valiant':
+                if firstCard in valiantCards:
+                    if self.rules['valiant_cards'] == 1:
+                        if firstCard.value == topCard.value:
+                            return True
+                        else:
+                            error = "Niestety! Zasady zabraniają użycia kart walecznych o innej figurze niż ta na stosie"
+                            return error
+
+                    if self.rules['valiant_cards'] == 2:
+                        if firstCard.value == topCard.value:
+                            return True
+                        elif firstCard.suit == topCard.suit:
+                            return True
+                        else:
+                            error = "Niestety! Pierwsza karta nie jest w tym samym kolorze co ta na wierzchu!"
+                            return error
+
+                    if self.rules['valiant_cards'] == 3:
+                        if firstCard.value == topCard.value:
+                            return True
+                        elif firstCard.suit == topCard.suit:
+                            if firstCard.value > topCard.value:
+                                return True
+                            else:
+                                error = "Niestety! Zgodnie z zasadami, karty muszą mieć wyższą wartość niż ta na wierzchu stosu"
+                                return error
+                        else:
+                            error = "Niestety! Pierwsza karta nie jest w tym samym kolorze co ta na wierzchu!"
+                            return error
+
+                else:
+                    error = "Niestety! Podana karta musi być waleczna!"
+                    return error
+
+            #3. if delay state
+            if self.state['type'] == 'delay':
+                if firstCard.value == 4:
+                    return True
+                else:
+                    error = "Niestety! Potrzebna jest 4."
+                    return error
+            #4. if jackDemand state
+            if self.state['type'] == 'jackDemand':
+                if firstCard.value == self.state['value'] or firstCard.value == 11:
+                    return True
+                else:
+                    error = "Niestety! Wybrana karta nie spełnia wymagań żądania Waleta."
+                    return error
+            #5. if aceDemand state
+            if self.state['type'] == 'aceDemand':
+                if firstCard.suit == self.state['value'] or firstCard.value == 1:
+                    self.resetState()
+                    return True
+                else:
+                    error = "Niestety! Wybrana karta nie spełnia wymagań żądania Asa."
+                    return error
+            #6. regular match
+            if firstCard.suit == topCard.suit or firstCard.value == topCard.value:
+                return True
+            else:
+                error = "Niestety! Wybrana karta nie pasuje do karty na wierzchu stosu."
+                return error
+
+    def isFunctional(self, cardList):
+        """ Modifies state accordingly if cards are functional """
         for card in cardList:
             if card in delayCards:
                 self.state['type'] = 'delay'
@@ -175,81 +258,56 @@ class Game(object):
                     self.state['value'] += card.value
             if card in demandCards:
                 if card.value == 1:
-                    self.state['type'] = 'aceDemand'
-                    self.state['value'] = input("Jakiego koloru żądasz?")
-                    print(self.state)
-                    return
+                    return "Ace"
                 elif card.value == 11:
-                    self.state['type'] = 'jackDemand'
-                    self.state['value'] = int(input("Jakiej karty żądasz?"))
-                    self.state['demander'] = currentPlayer
-                    print(self.state)
-                    return
-        print(self.state)
+                    return "Jack"
         return
 
-    def take(self,player):
+    def take(self):
         """Dobieranie jednej karty
             +Walidacja wyrzucanych kart"""
         #Musiałam zrobić prawie kalkę części "put" w Choose; może da się to jakoś zmienić w funkcję
 
-        #zapisuję do listy,bo receive powinno przyjmować listę
-        newCard = player.draw(self.deck)
+        #zapisuję do listy,bo validate powinno przyjmować listę
+        newCard = self.currentPlayer.draw(self.deck)
         pickedCards = []
         pickedCards.append(newCard)
 
         print("Nowa karta:")
         newCard.show()
-        print("Wszystkie karty:")
-        player.showHand()
+
         if self.rules['taking_cards'] == 2:
             answer = input("Chcesz wyrzucić nową kartę? (t/n)")
             if answer == 't':
-                if self.matchWithTopCard(pickedCards, player):
-                    if self.state['type'] == 'aceDemand':
-                        self.resetState()
-                    self.isFunctional(pickedCards, player)
+                if self.matchWithTopCard(pickedCards):
+                    self.isFunctional(pickedCards)
                 else:
-                    if pickedCards[0].joker:
-                        print("Zmieniamy Twoją kartę z powrotem na Jokera\n")
-                        pickedCards[0].ResetToJoker()
-                return
+                    self.resetJokers(pickedCards)
 
         if self.rules['taking_cards'] == 3:
             answer = input("Chcesz wyrzucić nową kartę? (t/n)")
             if answer == 't':
-                pickedCards.extend(self.letUserPickCardsToPut(player))
-                pickedCards = self.put(pickedCards)
+                pickedCards.extend(self.letUserPickCardsToPut(self.currentPlayer))
+                pickedCards = self.checkPickedCards(pickedCards)
                 if pickedCards:
-                    if self.matchWithTopCard(pickedCards, player):  # TODO dama wino
-                        if self.state['type'] == 'aceDemand':  # narazie droga na okrętkę;
-                            self.resetState()  # bo to się flushuje po pierwszym dopasowaniu;
-                        self.isFunctional(pickedCards, player)
-                        return
+                    if self.matchWithTopCard(pickedCards):
+                        self.isFunctional(pickedCards)
                     else:
-                        for card in pickedCards:
-                            if card.joker:
-                                print("Zmieniamy Twoją kartę z powrotem na Jokera\n")
-                                card.ResetToJoker()
-                        return
+                        self.resetJokers(pickedCards)
                 else:
-                    for card in pickedCards:
-                        if card.joker:
-                            print("Zmieniamy Twoją kartę z powrotem na Jokera\n")
-                            card.ResetToJoker()
-                    return
-            else:
-                return
-        else:
-            return
-
-    #UWAGA: TakePunishement przesunięte do Playera
-    #UWAGA: sufficentDeck przesunięte do Decka
-    # UWAGA: addToDeck przesunięte do Stacka
+                    self.resetJokers(pickedCards)
+        return
 
     def addToWinners(self,player):
         """ Move from players list to winners list"""
         self.winners.append(self.players.pop(self.players.index(player)))
+
+    def pickCards(self,card_indexes):
+        pickedCards = []
+        for i in card_indexes:
+            i = int(i)
+            pickedCards.append(self.currentPlayer.hand[i])
+        return pickedCards
 
     def letUserPickCardsToPut(self,player):
         """Temporary function"""
@@ -259,6 +317,12 @@ class Game(object):
             pickedCards.append(player.hand[i])
         return pickedCards
 
+    def showCompetitors(self):
+        competitors = []
+        for player in self.players:
+            if player != self.currentPlayer:
+                competitors += [player]
+        return competitors
 
     def renderPlayerView(self,player):
         """Shows top card, player's cards and competitors cards amount"""
@@ -284,11 +348,9 @@ class Game(object):
 
     def go(self):
         while not game.isEnd():
-            if self.currentPlayerId == len(self.players):
-                self.currentPlayerId = 0
-
-            self.turn(self.players[self.currentPlayerId])
-            self.currentPlayerId += 1
+            self.currentPlayer = self.players[self.counter%len(self.players)]
+            self.turn(self.currentPlayer)
+            self.nextPlayer()
 
         return self.winners
 

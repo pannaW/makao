@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %} Gra {% endblock %}
+
+{% block main %}
+
+
+<form action="{{ url_for('demand') }}" method="get" id="ace">
+    {% for suit in suits %}
+        <p>
+         <input type="radio" name="suit" id="{{ suit }}" value="{{ suit }}">
+            <label for="{{ suit }}"> {{ suit }}</label>
+        </p>
+    {% endfor %}
+     <p>
+        <input type="radio" name="suit" id="no" value="no">
+    <label for="no">  Nie żądam </label>
+     </p>
+<button type="submit"> Dalej </button>
+</form>
+{% endblock %}

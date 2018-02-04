@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %} Gra {% endblock %}
+{% block main %}
+
+<h3> Twoje karty teraz to: </h3>
+    {% for card in player.hand %}
+     <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+    {% endfor %}
+
+{% if rules.taking_cards == 1%}
+<a href="{{ url_for('next_player') }}"><button> Okej </button></a>
+{% else %}
+    <p> Chcesz wyrzucić nową kartę? </p>
+    <a href="?answer=no"><button> Nie </button></a>
+    <a href="?answer=yes"><button> Tak </button></a>
+{% endif %}
+
+
+{% endblock %}

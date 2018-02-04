@@ -2,8 +2,8 @@
 
 <h2> Wygrani: </h2>
 <ol>
-    {% for name in winners_names %}
-        <li> {{ name }} </li>
+    {% for winner in winners %}
+        <li> {{ winner.name }} </li>
     {% endfor %}
 </ol>
 {% endblock %}

@@ -7,3 +7,12 @@ body {
 main {
    flex: 1 0 auto;
 }
+
+img.cards {
+    height:180px;
+    width:120px;
+}
+
+select {
+    display:block;
+}

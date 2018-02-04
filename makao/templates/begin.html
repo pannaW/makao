@@ -4,8 +4,8 @@
 
                     <h3> Użytkownicy </h3>
                     <ul>
-                        {% for name in players_names %}
-                        <li> {{ name }} </li>
+                        {% for player in players %}
+                        <li> {{ player.name }} </li>
                         {% endfor %}
                     </ul>
 
@@ -14,7 +14,7 @@
                     {% if 'queen' in rules.functional_cards %}
                     -> Dama Pik ("moc" : unieważnia karty bitne, tj. 2, 3, król karo, król pik)
                     {% endif %}
-                    {% if 'joker' in functional_cards %}
+                    {% if 'joker' in rules.functional_cards %}
                     -> Joker ("moc" : tzw. wildcard, zastępuję dowolną wybraną kartę)
                     {% endif %}
 
@@ -53,4 +53,6 @@
                     {% elif rules.valiant_cards == 3 %}
                      -> Kartą o innej,<strong>wyższej wartością </strong> figurze jeśli pasuje kolorem (króla karo gdy na stos rzucono 3 karo)
                     {% endif %}
+
+<a href="{{ url_for('play') }}"><button> Rozpocznij grę </button></a>
 {% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %} Gra {% endblock %}
+{% block main %}
+
+Karta środka:
+{{ topCard.id }}
+<img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
+{{ topCard.suit }}, {{ topCard.value }}
+
+
+{% if pickedCards %}
+{{ pickedCards }}
+{% endif %}
+
+<form  action="{{url_for('pick_cards')}}" method="POST" id="cards">
+    {% for card in player.hand %}
+        <input type="radio" name="card" id="{{ card.id }}" value="{{ loop.index-1 }}" required>
+        <label for="{{ card.id }}">{{ card.id}}, {{ card.suit }}, {{ card.value }}, {{ loop.index-1 }} <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}"></label>
+    {% endfor %}
+    <button type="submit"> Dodaj </button>
+</form>
+    <a href="?end=True"><button> Koniec </button></a>
+
+
+{% endblock %}
