@@ -2,17 +2,31 @@
 {% block title %} Koniec gry {% endblock %}
 {% block main %}
 
-{% if winners|length > 1 %}
-<h2> Wygrani: </h2>
-<ol>
-    {% for winner in winners %}
-        <li> {{ winner.name }} </li>
-    {% endfor %}
-</ol>
-{% else %}
-<h2> Wygrał/a :  </h2>
-<p> {{ winners[0].name }} </p>
-{% endif %}
+<div class="start">
+     <div class="row">
+         <div class="winners col s12">
+             <div class="container fluid">
 
+                {% if winners|length > 1 %}
+                <h2> Wygrani </h2>
+                    {% for winner in winners %}
+                 <p> <span style="color:#ff9800;">#{{ winners.index(winner)+1 }}</span>  {{ winner.name }} </p>
+                    {% endfor %}
+
+                {% else %}
+                <h2> Wygrał/a </h2>
+                <p> {{ winners[0].name }} </p>
+                {% endif %}
+             </div>
+         </div>
+
+         <div class="row">
+             <div class="col m12 submit">
+                 <a href="{{ url_for('index') }}">
+                     <button class="btn waves-effect orange"> Nowa gra </button></a>
+             </div>
+         </div>
+     </div>
+</div>
 
 {% endblock %}

@@ -32,12 +32,14 @@ class Player(object):
         return newCard
 
     def takePunishement(self, PunishementValue, deck):
-        """ Player take punishment from valiant cards """
+        """ Player take punishment from valiant cards
+            :return list of Card objects"""
         i = 0
+        newCards = []
         while i < PunishementValue:
-            self.draw(deck)
+            newCards.append(self.draw(deck))
             i += 1
-        return self
+        return newCards
 
     def removeCards(self):
         """ Player flushes cards pending in 'picked cards' list """

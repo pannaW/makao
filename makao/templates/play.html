@@ -4,28 +4,6 @@
 {% block header %}
        <div class="card-panel blue lighten-3">
            <h3> Kolejka#{{game.counter+1 }} : {{ player.name }} </h3>
-        {% if game.state %}
-                <p class="info"> <b> Informacje </b>: {{ game.state }}
-                    {% if game.state.aceDemand %}
-                        Żądanie: {{ game.state.suit }}
-                        {% elif game.state.jackDemand %}
-                        Żądanie: {{ game.state.value }}
-                        {% elif game.state.delay %}
-                        {{ game.state.value }}  kolejek do stracenia
-                        {% elif game.state.valiant %}
-                        {{ game.state.value }}  kolejek do dobrania
-                    {% endif %}
-                </p>
-        {% endif %}
-           {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <ul class="flashes">
-                    {% for message in messages %}
-                      <li>{{ message }}</li>
-                    {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
 </div>
 {% endblock %}
 
@@ -35,7 +13,7 @@
     <div class="competitors row">
          {% for competitor in competitors %}
             <div class="col s12 m{{ 12//competitors|length}}">
-                <h4> {{ competitor.name }} </h4>
+                <h4> {{ competitor.name }} ({{ competitor.hand|length }} kart) </h4>
                 {% for card in competitor.hand %}
                     <img class="competitors_cards" src="{{ url_for('static', filename='img/55.png') }}">
                 {% endfor %}
@@ -45,38 +23,75 @@
 {% endblock %}
 
 {% block table %}
-<div class="table row">
-    <div class="container fluid">
-    <div class="top_card col s3 offset-s3">
-    <img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}"><br>
-        {% if topCard.joker %}
-            <p class="joker_notification"> Joker: {{ values[topCard.value] }} {{ topCard.suit }} </p>
-        {% endif %}
-    </div>
+        <div class="table row">
+            <div class="container fluid">
+            <div class="top_card col s3 offset-s3">
+            <img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
+                {% if topCard.joker %}
+                    <br><p class="joker_notification"> Joker: {{ values[topCard.value] }} {{ topCard.suit }} </p>
+                {% endif %}
+            </div>
 
-    <div class="deck col s6">
-        <img class="cards" src="{{ url_for('static', filename='img/57.png') }}">
-        <p class="deck_notification">  Zostało: {{ game.deck.cards|length }} kart </p>
-    </div>
-</div>
-</div>
+            <div class="deck col s6">
+                <img class="cards" src="{{ url_for('static', filename='img/57.png') }}">
+                <p class="deck_notification">  Zostało: {{ game.deck.cards|length }} kart </p>
+            </div>
+        </div>
+        </div>
+
+        {% block state %}
+            <div class="row">
+                <div class="col s12">
+                    <div class="container fluid">
+                        {% if game.state.type %}
+                            <p class="info"> <b> Informacje </b>: {{ game.state }}
+                                {% if game.state.type == 'aceDemand' or game.state.type == 'jackDemand' %}
+                                    Żądanie: {{ game.state.value }}
+                                    {% elif game.state.type == 'delay' %}
+                                    {{ game.state.value }}  kolejek do stracenia
+                                    {% elif game.state.type == 'valiant' %}
+                                    {{ game.state.value }}  kart do dobrania
+                                {% endif %}
+                            </p>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endblock %}
+
+        {% block flashes %}
+            <div class="row picked">
+                <div class="col s12">
+                      <div class="container fluid">
+                         {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <ul class="flashes">
+                        {% for message in messages %}
+                          <li style="color:red;text-align:center;">{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+                      </div>
+                </div>
+            </div>
+         {% endblock %}
+
+        <div class="row picked">
+            <div class="col s12">
+                  <div class="container fluid">
+                     {% block picked_cards %} {% endblock %}
+                  </div>
+            </div>
+        </div>
+
+
 
 {% endblock %}
 
 {% block my_cards %}
-<div class="players_cards row">
-    <h4>{{ player.name }} </h4>
-    <div class="col s8 offset-s2">
-        {% for card in player.hand %}
-        <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
-        {% endfor %}
-    </div>
-    {% block option %}
-    <div class="col s2">
-        <a href="{{ url_for('take') }}"><button class="waves-effect orange btn action"> Bierz </button></a>
-    </div>
+ {% block option %}
     {% endblock %}
-</div>
 {% endblock %}
 
 

@@ -1,10 +1,30 @@
-{% extends "base.html" %}
-{% block title %} Gra {% endblock %}
-{% block main %}
+{% extends "play.html" %}
 
-<p> Info: {{ player.name }}, tracisz kolejkę.<br>
-    Pozostało Ci {{ player.delay }} kolejek oczekiwania. </p>
 
-<a href="{{ url_for('next_player') }}"><button> Rozumiem </button></a>
+{% block my_cards %}
+<div class="players_cards row">
+    <h4>{{ player.name }} </h4>
+    <p style="text-align:center;"> <span style="color:red;"> Tracisz kolejkę.</span> Pozostało Ci {{ player.delay }} kolejek oczekiwania. </p>
+    <div class="col s8 offset-s2">
+        {% for card in player.hand %}
+         <div class="picked-card">
+                    <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+                        <div class="hover"></div>
+         </div>
+        {% endfor %}
+    </div>
 
+    {% block option %}
+    <div class="col s2">
+            <a href="{{ url_for('next_player') }}"><button class="waves-effect light-blue btn put">  Rozumiem </button></a><br>
+    </div>
+    {% endblock %}
+
+</div>
 {% endblock %}
+
+
+
+
+
+

@@ -1,38 +1,35 @@
-{% extends "base.html" %}
-{% block title %} Gra {% endblock %}
-{% block main %}
+{% extends "play.html" %}
 
-Karta środka:
-{{ topCard.id }}
-<img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
-{{ topCard.suit }}, {{ topCard.value }}
+{% block my_cards %}
+    <div class="players_cards row">
+        <h4>{{ player.name }} ( {{ player.hand|length}} kart ) </h4>
+        <div class="col s8 offset-s2">
+            {% for card in player.hand %}
+            <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+            {% endfor %}
+        </div>
 
-
-<h3> Twoje karty: </h3>
-    {% for card in player.hand %}
-     <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
-    {% endfor %}
-
-
-
-<h3> Jakiej karty żądasz? </h3>
-<form action="{{ url_for('demand') }}" method="get" id="jack">
-    {% for value in [ 5,6,7,8,9,10] %}
-    <p>
-        <input type="radio" name="value" id="{{ value }}" value="{{ value }}">
-        <label for="{{ value }}"> {{ value }} </label>
-    </p>
-    {% endfor %}
-    <p>
-        <input type="radio" name="value" id="12" value="12">
-        <label for="12"> Dama </label>
-    </p>
-    <p>
-    <input type="radio" name="value" id="no" value="no">
-    <label for="no"> Nie żądam </label>
-    </p>
-<button type="submit"> Dalej </button>
-</form>
-
-
-{% endblock %}
+        {% block option %}
+        <h3> Jakiej karty żądasz? </h3>
+        <div class="col s2">
+            <form action="{{ url_for('demand') }}" method="get" id="jack">
+                {% for value in [ 5,6,7,8,9,10] %}
+                <p>
+                    <input type="radio" name="value" id="{{ value }}" value="{{ value }}">
+                    <label for="{{ value }}"> {{ value }} </label>
+                </p>
+                {% endfor %}
+                <p>
+                    <input type="radio" name="value" id="12" value="12">
+                    <label for="12"> Dama </label>
+                </p>
+                <p>
+                <input type="radio" name="value" id="no" value="no">
+                <label for="no"> Nie żądam </label>
+                </p>
+            <button class="waves-effect orange btn put" type="submit"> Dalej </button>
+            </form>
+        </div>
+        {% endblock %}
+    </div>
+    {% endblock %}

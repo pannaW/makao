@@ -103,10 +103,10 @@ def play():
 
     if game.isCurrentPlayerSkipping():
         pickle_write("game.pickle", game)
-        return render_template('player_delayed.html', player=game.currentPlayer)
+        return render_template('player_delayed.html',competitors=game.showCompetitors(), game=game, player=game.currentPlayer,
+                           picked_cards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(), values=values)
     else:
-        return render_template('play.html', game=game, player=game.currentPlayer, competitors=game.showCompetitors(),
-                               topCard=game.stack.getTopCard(), values=values)
+        return redirect(url_for('pick_cards'))
 
 
 @app.route('/pick_cards', methods=['GET','POST'])
@@ -128,8 +128,8 @@ def pick_cards():
             game.currentPlayer.pickCard(card_index)
             pickle_write("game.pickle",game)
 
-    return render_template('pick_cards.html',game=game, player=game.currentPlayer,
-                           pickedCards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(), values=values)
+    return render_template('pick_cards.html',competitors=game.showCompetitors(), game=game, player=game.currentPlayer,
+                           picked_cards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(), values=values)
 
 
 @app.route('/joker')
@@ -145,8 +145,9 @@ def rename_joker():
         session.pop('joker_index', None)
         return redirect(url_for('pick_cards'))
 
-    return render_template('joker.html',game=game, player=game.currentPlayer,topCard=game.stack.getTopCard(),
-                           values=values,suits=suits)
+    return render_template('joker.html',competitors=game.showCompetitors(), game=game, player=game.currentPlayer,
+                           picked_cards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(),values=values,
+                            suits=suits)
 
 
 @app.route('/validation_1')
@@ -220,8 +221,9 @@ def demand():
                 session.pop('demand', None)
                 return redirect(url_for('next_player'))
         #1. Wyrenderuj formularz
-        return render_template('ace_demand.html',game=game, player=game.currentPlayer,
-                           pickedCards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(),suits=suits)
+        return render_template('ace_demand.html',competitors=game.showCompetitors(), game=game, player=game.currentPlayer,
+                               picked_cards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(),
+                               values=values,suits=suits)
 
     elif session['demand'] == "Jack":
         game = pickle_read("game.pickle")
@@ -242,8 +244,8 @@ def demand():
                 pickle_write("game.pickle", game)
                 return redirect(url_for('next_player'))
         #1. Wyrenderuj formularz
-        return render_template('jack_demand.html',game=game, player=game.currentPlayer,
-                           pickedCards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard())
+        return render_template('jack_demand.html',competitors=game.showCompetitors(), game=game, player=game.currentPlayer,
+                           picked_cards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(), values=values)
 
 
 @app.route('/take')
@@ -271,24 +273,27 @@ def take():
         game.currentPlayer.delay = game.state['value']
         game.resetState()
         pickle_write("game.pickle", game)
-        return render_template('take_delay.html',player=game.currentPlayer)
+        return render_template('take_delay.html',competitors=game.showCompetitors(), game=game, player=game.currentPlayer,
+                          topCard=game.stack.getTopCard(), values=values)
 
     if game.state['type'] == 'valiant':
         if not game.deck.isSufficient(game.state['value']):
             game.stack.addToDeck(game.deck)
-        game.currentPlayer.takePunishement(game.state['value'], game.deck)
+        newCards = []
+        newCards.extend(game.currentPlayer.takePunishement(game.state['value'], game.deck))
         game.resetState()
         pickle_write("game.pickle", game)
-        return render_template('take_punishement.html', player=game.currentPlayer)
+        return render_template('take_punishement.html', competitors=game.showCompetitors(), game=game,
+                               player=game.currentPlayer,topCard=game.stack.getTopCard(), values=values,new_cards=newCards)
     else:
         if not game.deck.isSufficient(2):
             game.stack.addToDeck(game.deck)
 
-        game.currentPlayer.draw(game.deck)
+        newCard = game.currentPlayer.draw(game.deck)
         pickle_write("game.pickle", game)
 
         return render_template('take.html',game=game, player=game.currentPlayer,competitors=game.showCompetitors(),
-                               topCard=game.stack.getTopCard(), rules=game.rules)
+                               topCard=game.stack.getTopCard(), rules=game.rules,values=values, new_card=newCard)
 
 
 @app.route('/take/joker')
@@ -307,8 +312,9 @@ def take_rename_joker():
         else:
             return redirect(url_for('pick_cards'))
 
-    return render_template('joker.html',topCard=game.stack.getTopCard(), game=game, player=game.currentPlayer,
-                            values=values, suits=suits, take=True)
+    return render_template('joker.html',competitors=game.showCompetitors(), game=game, player=game.currentPlayer,
+                           picked_cards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(), values=values,
+                           suits=suits, take=True)
 
 
 @app.route('/next-player')

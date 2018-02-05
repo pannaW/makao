@@ -90,6 +90,10 @@ text-align:center;
 text-align:left;
 }
 
+i {
+color: #ff9800;
+}
+
 .summary span {
     color:#ffa726;
 }
@@ -106,7 +110,35 @@ padding-left:30%;
 
 img.cards {
     height:180px;
-    width:120px
+    width:120px;
+}
+
+.picked-card{
+height:180px;
+width:120px;
+display:inline-block;
+position:relative;
+float:left;
+margin-left:5px;
+}
+
+.hover{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 180px;
+    width: 120px;
+    border-radius: 11px;
+    background-color:rgba(0,0,0,0.4);
+    z-index: 2;
+}
+
+
+img.pickable.cards:hover {
+    border: 2px solid #03a9f4;
+    border-radius: 11px;
 }
 
 .competitors_cards {
@@ -125,8 +157,19 @@ margin-top: 5%;
 margin-bottom: 5%;
 }
 
-.action {
-margin: 50% auto;
+.take {
+margin-top: 5%;
+width:160px;
+}
+
+.put {
+margin-top:40%;
+width:160px;
+}
+
+.throw{
+margin:5% auto;
+text-align:center;
 }
 
 .players_cards h4 {
@@ -138,7 +181,16 @@ select {
     display:block;
 }
 
+.info {
+    text-align:center;
+}
+
 .info,ul .flashes {
     font-weigh: 500;
     color:red;
+}
+
+.winners{
+text-align:center;
+font-size:25px;
 }

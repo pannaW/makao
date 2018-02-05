@@ -7,11 +7,6 @@
              <div class="container fluid">
                     <h2> Podsumowanie </h2>
                       <div class="container fluid">
-                    <ul>
-                        {% for player in players %}
-                        <li class="players"><b> Gracz #{{ players.index(player)+1 }}</b> {{ player.name }} </li>
-                        {% endfor %}
-                    </ul>
 
                     <div class="rules_summary">
                         {% if 'queen' in rules.functional_cards %}

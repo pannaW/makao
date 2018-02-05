@@ -1,19 +1,18 @@
-{% extends "base.html" %}
-{% block title %} Gra {% endblock %}
-{% block main %}
-Karta środka:
-{{ topCard.id }}
-<img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
-{{ topCard.suit }}, {{ topCard.value }}
+{% extends "play.html" %}
 
+{% block my_cards %}
+<div class="players_cards row">
+    <h4>{{ player.name }} ( {{ player.hand|length}} kart ) </h4>
+    <div class="col s8 offset-s2">
+        {% for card in player.hand %}
+        <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+        {% endfor %}
+    </div>
 
-<h3> Twoje karty: </h3>
-    {% for card in player.hand %}
-     <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
-    {% endfor %}
-
-<h3> Jakiego koloru żądasz? </h3>
-<form action="{{ url_for('demand') }}" method="get" id="ace">
+    {% block option %}
+    <h3> Jakiego koloru żądasz? </h3>
+    <div class="col s2">
+        <form action="{{ url_for('demand') }}" method="get" id="ace">
     {% for suit in suits %}
         <p>
          <input type="radio" name="suit" id="{{ suit }}" value="{{ suit }}">
@@ -24,6 +23,15 @@ Karta środka:
         <input type="radio" name="suit" id="no" value="no">
     <label for="no">  Nie żądam </label>
      </p>
-<button type="submit"> Dalej </button>
-</form>
-{% endblock %}
+    <button class="waves-effect orange btn put" type="submit"> Dalej </button>
+    </form>
+    {% endblock %}
+
+</div>
+    {% endblock %}
+
+
+
+
+
+

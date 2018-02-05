@@ -1,27 +1,49 @@
-{% extends "base.html" %}
-{% block title %} Gra {% endblock %}
-{% block main %}
+{% extends "play.html" %}
 
-Karta środka:
-{{ topCard.id }}
-<img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
-{{ topCard.suit }}, {{ topCard.value }}
-<br>
+        {% block picked_cards %}
 
-{% if pickedCards %}
-{{ pickedCards }}
-{% endif %}
+        {% if picked_cards %}
+            <h4> Wybrane karty </h4>
+            {% for card in picked_cards %}
+                <div class="picked-card">
+                    <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+                    <div class="hover"></div>
+                    {% if card.joker and card.value != 0 %} <br>
+                    <p>Joker: {{ values[card.value] }} {{ card.suit }} </p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <div class="col s12">
+                        <a href="?end=True"><button class="throw waves-effect orange btn"> Rzuć </button></a><br>
+            </div>
 
-<br>
+        {% endif %}
 
-    {% for card in player.hand %}
-    <a href="?value={{ loop.index-1 }}"><img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}"></a>
-        {% if card.joker and card.value != 0 %}
+        {% endblock %}
 
-        Ten Joker to teraz umownie: {{ values[card.value] }} {{ card.suit }}
+{% block my_cards %}
+<div class="players_cards row">
+    <h4>{{ player.name }} ({{ player.hand|length}} kart) </h4>
+    <div class="col s8 offset-s2">
+        {% for card in player.hand %}
+        <a href="?value={{ loop.index-1 }}">
+        <img class="pickable cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+        </a>
+        {% if card.joker and card.value != 0 %} <br>
+        <p>Joker: {{ values[card.value] }} {{ card.suit }} </p>
+        {% endif %}
+        {% endfor %}
+    </div>
 
+    {% block option %}
+    {% if not picked_cards %}
+    <p style="font-style:italic; text-align:center;"> Kliknij w karty które chcesz wyrzucić lub dobierz karty.</em>
+    <div class="col s2">
+    <a href="{{ url_for('take') }}"><button class="waves-effect light-blue btn put"> Bierz </button></a>
+    </div>
     {% endif %}
-    {% endfor %}
-    <a href="?end=True"><button> Koniec </button></a>
+    {% endblock %}
 
+</div>
 {% endblock %}
+

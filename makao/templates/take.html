@@ -1,33 +1,37 @@
-{% extends "base.html" %}
-{% block title %} Gra {% endblock %}
-{% block main %}
+{% extends "play.html" %}
 
-<h2> Gra użytkownik: {{ player.name }} </h2>
-<b> Informacje </b>
-<p> Kolejka nr. {{ game.counter+1 }} </p>
-<p> Stan gry: {{ game.state }} </p>
-<p> W talii zostało: {{ game.deck.cards|length }} </p>
-{% for competitor in competitors %}
-<p> Twój przeciwnik {{ competitor.name }} ma {{ competitor.hand|length }} kart </p>
-{% endfor %}
+{% block my_cards %}
+<div class="players_cards row">
+    <h4>{{ player.name }} </h4>
+    <div class="col s8 offset-s2">
+        {% for card in player.hand %}
+         <div class="picked-card">
+                    <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+                    {% if card != new_card %}
+                        <div class="hover"></div>
+                    {% endif %}
+                </div>
+        {% endfor %}
+    </div>
 
-Karta środka:
-{{ topCard.id }}
-<img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
-{{ topCard.suit }}, {{ topCard.value }}
+    {% block option %}
+    <div class="col s2">
+        {% if rules.taking_cards == 1%}
+            <a href="{{ url_for('next_player') }}"><button class="waves-effect light-blue btn put">  Dalej </button></a><br>
+        {% else %}
+                <p> Chcesz wyrzucić nową kartę? </p>
+            <a href="?answer=yes"><button class="waves-effect orange btn put"> Tak </button></a>
+                <a href="?answer=no"><button class="waves-effect light-blue btn take"> Nie </button></a>
+        {% endif %}
+    </div>
+    {% endblock %}
 
-<h3> Twoje karty teraz to: </h3>
-    {% for card in player.hand %}
-     <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
-    {% endfor %}
-
-{% if rules.taking_cards == 1%}
-<a href="{{ url_for('next_player') }}"><button> Okej </button></a>
-{% else %}
-    <p> Chcesz wyrzucić nową kartę? </p>
-    <a href="?answer=no"><button> Nie </button></a>
-    <a href="?answer=yes"><button> Tak </button></a>
-{% endif %}
-
-
+</div>
 {% endblock %}
+
+
+
+
+
+
+

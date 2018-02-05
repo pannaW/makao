@@ -1,11 +1,24 @@
-{% extends "base.html" %}
-{% block title %} Gra {% endblock %}
-{% block main %}
+{% extends "play.html" %}
 
-<h3> Twoje karty teraz to: </h3>
-    {% for card in player.hand %}
-     <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
-    {% endfor %}
-    <a href="{{ url_for('next_player') }}"><button> Okej </button></a>
+{% block my_cards %}
+<div class="players_cards row">
+    <h4>{{ player.name }} </h4>
+    <div class="col s8 offset-s2">
+        {% for card in player.hand %}
+         <div class="picked-card">
+                    <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+                    {% if card not in new_cards %}
+                        <div class="hover"></div>
+                    {% endif %}
+         </div>
+        {% endfor %}
+    </div>
 
+    {% block option %}
+    <div class="col s2">
+            <a href="{{ url_for('next_player') }}"><button class="waves-effect light-blue btn put">  Dalej </button></a><br>
+    </div>
+    {% endblock %}
+
+</div>
 {% endblock %}

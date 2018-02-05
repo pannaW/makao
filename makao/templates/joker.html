@@ -1,65 +1,81 @@
-{% extends "base.html" %}
-{% block title %} Gra {% endblock %}
+{% extends "play.html" %}
 
-{% block main %}
+        {% block picked_cards %}
 
-Karta środka:
-{{ topCard.id }}
-<img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
-{{ topCard.suit }}, {{ topCard.value }}
+        {% if picked_cards %}
+            <h4> Wybrane karty </h4>
+            {% for card in picked_cards %}
+                <div class="picked-card">
+                    <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+                    <div class="hover"></div>
+                </div>
+            {% endfor %}
+        {% endif %}
 
-
-Na jaką kartę chciałbyś zmienić jokera?
-
-{% if take %}
-<form action="{{url_for('take_rename_joker')}}" id="joker" method="get">
-     <label> Figura </label>
-    <select class="browser-default" name="value" form="joker" required>
-        {% for value in values %}
-        <option value="{{ loop.index-1 }}"> {{ value }} </option>
-        {% endfor %}
-    </select>
-
-    <label> Kolor </label>
-    <select class="browser-default" name="suit" form="joker" required>
-        {% for suit in suits %}
-        <option value="{{ suit }}"> {{ suit }} </option>
-        {% endfor %}
-    </select>
-    <button type="submit"> Zmień </button>
-</form>
-
-{% else %}
-
-<form action="{{url_for('rename_joker')}}" id="joker1" method="get">
-     <label> Figura </label>
-    <select class="browser-default" name="value" form="joker1" required>
-        {% for value in values %}
-        <option value="{{ loop.index-1 }}"> {{ value }} </option>
-        {% endfor %}
-    </select>
-
-    <label> Kolor </label>
-    <select class="browser-default" name="suit" form="joker1" required>
-        {% for suit in suits %}
-        <option value="{{ suit }}"> {{ suit }} </option>
-        {% endfor %}
-    </select>
-    <button type="submit"> Zmień </button>
-</form>
-
-{% endif %}
+        {% endblock %}
 
 
+        {% block my_cards %}
+        <div class="players_cards row">
+            <h4>{{ player.name }} ( {{ player.hand|length}} kart ) </h4>
+            <div class="col s8 offset-s2">
+                {% for card in player.hand %}
+                <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+                {% endfor %}
+            </div>
 
+                {% block option %}
+                    <h3> Na jaką kartę chciałbyś zmienić jokera? </h3>
+                    <div class="col s2">
+                        {% if take %}
+                            <form action="{{url_for('take_rename_joker')}}" id="joker" method="get">
+                                 <label> Figura </label>
+                                <select class="browser-default" name="value" form="joker" required>
+                                    {% for value in values %}
+                                    <option value="{{ loop.index-1 }}"> {{ value }} </option>
+                                    {% endfor %}
+                                </select>
 
+                                <label> Kolor </label>
+                                <select class="browser-default" name="suit" form="joker" required>
+                                    {% for suit in suits %}
+                                    <option value="{{ suit }}"> {{ suit }} </option>
+                                    {% endfor %}
+                                </select>
+                                <button class="waves-effect orange btn put" type="submit"> Zmień </button>
+                            </form>
 
+                        {% else %}
 
-{% if take %}
-<a href="{{ url_for('next_player') }}"><button> Anuluj </button></a>
-{% else %}
-<a href="{{ url_for('pick_cards') }}"><button> Anuluj </button></a>
-{% endif %}
+                            <form action="{{url_for('rename_joker')}}" id="joker1" method="get">
+                                 <label> Figura </label>
+                                <select class="browser-default" name="value" form="joker1" required>
+                                    {% for value in values %}
+                                    <option value="{{ loop.index-1 }}"> {{ value }} </option>
+                                    {% endfor %}
+                                </select>
 
+                                <label> Kolor </label>
+                                <select class="browser-default" name="suit" form="joker1" required>
+                                    {% for suit in suits %}
+                                    <option value="{{ suit }}"> {{ suit }} </option>
+                                    {% endfor %}
+                                </select>
+                                <button class="waves-effect orange btn put" type="submit"> Zmień </button>
+                            </form>
 
+                        {% endif %}
+
+                        {% if take %}
+                            <a href="{{ url_for('next_player') }}"><button class="waves-effect btn light-blue take"> Anuluj </button></a>
+                        {% else %}
+                            <a href="{{ url_for('pick_cards') }}"><button class="waves-effect btn light-blue take"> Anuluj </button></a>
+                        {% endif %}
+
+                </div>
+        </div>
+    {% endblock %}
 {% endblock %}
+
+
+
