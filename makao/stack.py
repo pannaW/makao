@@ -2,37 +2,30 @@
 from makao.cards import Card, suits
 
 class Stack(object):
-    """ Stack on the middle of the board """
     def __init__(self,deck):
-        """ Creating the stack on the middle of the board """
         self.cards = []
         self.drawFistCard(deck)
 
     def drawFistCard(self,deck):
+        """ Draws first card until it is not functional """
         self.cards.append(deck.drawCard())
         while self.cards[-1] in functionalCards:
             self.drawFistCard(deck)
 
     def getTopCard(self):
-        """ Shows top card """
+        """ Returns top card
+        :return Card object """
         return self.cards[-1]
 
-    def show(self):
-        """Rather for testing purposes"""
-        print("Stos wygląda tak:")
-        for c in self.cards:
-            c.show()
 
     def addToStack(self,pickedCards):
-        """
-        Adds cards picked by user from his hand
-        :param pickedCards: list()
-        :return:
-        """
+        """ Adds cards picked by user from his hand
+        :param list of card Objects"""
         self.cards.extend(pickedCards)
 
     def addToDeck(self,deck):
-        """ Adding cards from stack to deck """
+        """ Adding cards from stack to deck
+         :return Deck object """
         for card in self.cards[:-1]:
             if card.joker:
                 card.ResetToJoker()

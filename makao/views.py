@@ -4,7 +4,7 @@ from flask import render_template, session, request, redirect, url_for,flash
 from makao import app
 from makao.cards import suits, values
 from makao.player import Player
-from makao.gameObject import Game
+from makao.game import Game
 
 
 def pickle_read(filename):
@@ -31,7 +31,6 @@ def index():
 def players():
     """ Gets informations about players
     (number of players, players' names) """
-
     if request.method == 'POST':
         #3. Send data
         session['players_names'] = []
@@ -60,7 +59,7 @@ def rules():
                          'taking_cards': int(request.form.get('taking_cards')),
                          'putting_cards': int(request.form.get('putting_cards')),
                          'valiant_cards' : int(request.form.get('valiant_cards'))}
-               #init rules
+
                 session['rules'] = rules
                 return redirect(url_for('begin'))
             else:
@@ -72,20 +71,23 @@ def rules():
 @app.route('/begin',methods=['GET','POST'])
 def begin():
     """ Summary and init """
+    if session.get('players_names'):
+        # init Players
+        players_list = []
+        for player in session['players_names']:
+            players_list += [Player(player)]
 
-    # init Players
-    players_list = []
-    for player in session['players_names']:
-        players_list += [Player(player)]
-    # init Game
-    game = Game(players_list, session['rules'])
+        # init Game
+        game = Game(players_list, session['rules'])
 
-    pickle_write("game.pickle",game)
+        pickle_write("game.pickle",game)
 
-    session.pop('players_names', None)
-    session.pop('rules', None)
+        session.pop('players_names', None)
+        session.pop('rules', None)
 
-    return render_template('begin.html',rules=game.rules,players=game.players)
+        return render_template('begin.html',rules=game.rules,players=game.players)
+    else:
+        return redirect(url_for('players'))
 
 
 @app.route('/play',methods=['GET','POST'])
@@ -109,7 +111,7 @@ def play():
 
 @app.route('/pick_cards', methods=['GET','POST'])
 def pick_cards():
-    """ Let player picks cards one by one """
+    """ Lets player picks cards one by one """
     game = pickle_read("game.pickle")
     session.pop('joker_index', None)
 
@@ -118,7 +120,7 @@ def pick_cards():
 
     if request.args.get("value"):
         card_index = request.args.get("value",type=int)
-        #if NOT RENAMED Joker
+        #if not RENAMED joker
         if game.currentPlayer.hand[card_index].value == 0:
             session['joker_index'] = int(card_index)
             return redirect(url_for('rename_joker'))
@@ -132,6 +134,7 @@ def pick_cards():
 
 @app.route('/joker')
 def rename_joker():
+    """ Lets user rename joker """
     game = pickle_read("game.pickle")
 
     if request.args.get('suit') and request.args.get('value'):
@@ -148,10 +151,7 @@ def rename_joker():
 
 @app.route('/validation_1')
 def validation_1():
-    """
-    Checks if (1) cards were picked, (2) correct amount of cards were picked (3) all cards have the same value
-    :return: redirect
-    """
+    """Checks if (1) cards were picked, (2) correct amount of cards were picked (3) all cards have the same value"""
     game = pickle_read("game.pickle")
     result = game.checkPickedCards(game.currentPlayer.pickedCards)
 
@@ -203,6 +203,7 @@ def validation_2():
 
 @app.route('/demand')
 def demand():
+    """Lets player pick demanded suit or value """
     game = pickle_read("game.pickle")
     if session.get('demand') == "Ace":
         # 2. Interpretuj wybór
@@ -247,6 +248,7 @@ def demand():
 
 @app.route('/take')
 def take():
+    """ Modyfications after player chooses to take """
     game = pickle_read("game.pickle")
 
     if request.args.get("answer"):
@@ -256,7 +258,7 @@ def take():
             game.currentPlayer.pickCard(-1)
             session['takeProcessFlag'] = True
             pickle_write("game.pickle", game)
-            if game.currentPlayer.pickedCards[0].joker:         #tego się nie da też jakoś podciągnąć pod normalnego jokera?
+            if game.currentPlayer.pickedCards[0].joker:
                 return redirect(url_for('take_rename_joker'))
 
             else:
@@ -291,6 +293,7 @@ def take():
 
 @app.route('/take/joker')
 def take_rename_joker():
+    """ Let the user rename joker that he has just draw, in order to put it on the stack """
     game = pickle_read("game.pickle")
 
     if request.args.get('suit') and request.args.get('value'):
@@ -310,7 +313,10 @@ def take_rename_joker():
 
 @app.route('/next-player')
 def next_player():
+    """ Modyfications to process player forwardng """
     session.pop('takeProcessFlag', None)
+    session.pop('joker_index', None)
+
     game = pickle_read("game.pickle")
     game.nextPlayer()
     pickle_write("game.pickle",game)
@@ -319,27 +325,7 @@ def next_player():
 
 @app.route('/end')
 def end_game():
+    """ Displays winner"""
     game = pickle_read("game.pickle")
     return render_template('end_game.html', winners=game.winners)
 
-
-# @app.route('/game/player/next')         #jaką to ma funkcję
-# def game_next():
-# @app.context_processor
-# def inject_variables():
-#     return dict(
-#         user={'name': 'Alicja'},
-#         posts=[
-#             {
-#                 'post_id': 0,
-#                 'title': 'Post numer 1'
-#             },
-#             {
-#                 'post_id': 1,
-#                 'title': 'Post numer 2'
-#             },
-#             {
-#                 'post_id': 2,
-#                 'title': 'Post numer 3'
-#             }]
-#         )

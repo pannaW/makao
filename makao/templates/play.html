@@ -1,35 +1,84 @@
 {% extends "base.html" %}
 {% block title %} Gra {% endblock %}
+
+{% block header %}
+       <div class="card-panel blue lighten-3">
+           <h3> Kolejka#{{game.counter+1 }} : {{ player.name }} </h3>
+        {% if game.state %}
+                <p class="info"> <b> Informacje </b>: {{ game.state }}
+                    {% if game.state.aceDemand %}
+                        Żądanie: {{ game.state.suit }}
+                        {% elif game.state.jackDemand %}
+                        Żądanie: {{ game.state.value }}
+                        {% elif game.state.delay %}
+                        {{ game.state.value }}  kolejek do stracenia
+                        {% elif game.state.valiant %}
+                        {{ game.state.value }}  kolejek do dobrania
+                    {% endif %}
+                </p>
+        {% endif %}
+           {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class="flashes">
+                    {% for message in messages %}
+                      <li>{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+</div>
+{% endblock %}
+
 {% block main %}
 
+{% block competitors %}
+    <div class="competitors row">
+         {% for competitor in competitors %}
+            <div class="col s12 m{{ 12//competitors|length}}">
+                <h4> {{ competitor.name }} </h4>
+                {% for card in competitor.hand %}
+                    <img class="competitors_cards" src="{{ url_for('static', filename='img/55.png') }}">
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
 
-<h2> Gra użytkownik: {{ player.name }} </h2>
-<b> Informacje </b>
-<p> Kolejka nr. {{ game.counter+1 }} </p>
-<p> Stan gry: {{ game.state }} </p>
-<p> W talii zostało: {{ game.deck.cards|length }} </p>
-{% for competitor in competitors %}
-<p> Twój przeciwnik {{ competitor.name }} ma {{ competitor.hand|length }} kart </p>
-{% endfor %}
+{% block table %}
+<div class="table row">
+    <div class="container fluid">
+    <div class="top_card col s3 offset-s3">
+    <img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}"><br>
+        {% if topCard.joker %}
+            <p class="joker_notification"> Joker: {{ values[topCard.value] }} {{ topCard.suit }} </p>
+        {% endif %}
+    </div>
 
-Karta środka:
-{{ topCard.id }}
-<img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
-{{ topCard.suit }}, {{ topCard.value }}
-<br>
-{% if topCard.joker %}
-Ten Joker to umownie: {{ values[topCard.value] }} {{ topCard.suit }}
-{% endif %}
+    <div class="deck col s6">
+        <img class="cards" src="{{ url_for('static', filename='img/57.png') }}">
+        <p class="deck_notification">  Zostało: {{ game.deck.cards|length }} kart </p>
+    </div>
+</div>
+</div>
+
+{% endblock %}
+
+{% block my_cards %}
+<div class="players_cards row">
+    <h4>{{ player.name }} </h4>
+    <div class="col s8 offset-s2">
+        {% for card in player.hand %}
+        <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+        {% endfor %}
+    </div>
+    {% block option %}
+    <div class="col s2">
+        <a href="{{ url_for('take') }}"><button class="waves-effect orange btn action"> Bierz </button></a>
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}
 
 
-<h3> Twoje karty: </h3>
-    {% for card in player.hand %}
-     <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
-    {% endfor %}
 
-
-<h3> Co chcesz zrobić? </h3>
-<a href="{{ url_for('pick_cards') }}"><button> Rzuć </button></a>
-
-<a href="{{ url_for('take') }}"><button> Bierz </button></a>
 {% endblock %}

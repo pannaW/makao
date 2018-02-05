@@ -2,13 +2,11 @@
 from makao.stack import Stack, valiantCards, demandCards, delayCards, functionalCards
 from makao.deck import Deck
 from makao.player import Player
-import pickle
 
 
 class Game(object):
     counter = 0
     currentPlayer = 0
-
     def __init__(self, players, rules):
         self.rules = rules
         self.state = {'type': '', 'value': 0}
@@ -19,28 +17,12 @@ class Game(object):
         self.deal()
         self.stack = Stack(self.deck)
 
-    def setCurrentPlayer(self):
-        self.currentPlayer = self.players[self.counter % len(self.players)]
-
-    def isCurrentPlayerSkipping(self):
-        if self.currentPlayer.delay:
-            self.currentPlayer.delay -= 1
-            return True
-        else:
-            return False
-
     def nextPlayer(self):
-        """Checks if player won, count down jackDemand if active,
-           add to the game counter (-> next player) """
-
-        if self.currentPlayer.emptyHand():
-            self.addToWinners(self.currentPlayer)
-
         if self.state['type'] == 'jackDemand':
             self.state['demandTurns'] -= 1
-
         self.counter += 1
         return
+
 
     def jackDemandEndCondition(self):
         if self.state['type'] == 'jackDemand':
@@ -82,9 +64,14 @@ class Game(object):
 
         else:
             self.choose(player)
-            print("Po Twoim ruchu sytuacja wygląda tak:")
-            self.renderPlayerView(player)
-            print(self.state)
+            # po wyrzuceniu sprawdzam czy ma jeszcze karty
+            if player.emptyHand():
+                print("Dodaję Cię do zwycięzców!")
+                self.addToWinners(player)
+            else:
+                print("Po Twoim ruchu sytuacja wygląda tak:")
+                self.renderPlayerView(player)
+                print(self.state)
             return
 
 
@@ -93,7 +80,7 @@ class Game(object):
     def resetJokers(self,pickedCards):
         for card in pickedCards:
             if card.joker:
-                # print("Zmieniamy Twoją kartę z powrotem na Jokera\n")
+                print("Zmieniamy Twoją kartę z powrotem na Jokera\n")
                 card.ResetToJoker()
 
     def choose(self, player):
@@ -106,8 +93,8 @@ class Game(object):
             if action == 'put':
                 pickedCards = self.checkPickedCards(self.letUserPickCardsToPut(player))
                 if pickedCards:
-                    if self.matchWithTopCard(pickedCards):
-                        self.isFunctional(pickedCards)
+                    if self.matchWithTopCard(pickedCards,player):
+                        self.isFunctional(pickedCards, player)
                         break
                     else:
                         self.resetJokers(pickedCards)
@@ -133,43 +120,60 @@ class Game(object):
                     break
 
 
+    def jokersInCards(self,pickedCards):
+        jokers = []
+        for card in pickedCards:
+            if card.suit == "Joker":
+                jokers += [card]
+        return jokers
+                # card.renameJoker(*answer)
+
     def checkPickedCards(self,pickedCards):
         """ Walidacja wybranych kart:
                 czy podał karty
+                czy karta jest Jokerem (SPRAWDZA KAŻÐĄ KARTĄ)
                     określ wartość i figurę
                 czy są tej samej figury
                 czy można wyrzucić dwie karty
                     czy nie ma dwóch kart
-            :param  (list) pickedCards
-            :return (string) error message / (list) pickedCards
+            :param  player      object
+            :return pickedCards list
         """
 
         if pickedCards:
+            for card in pickedCards:
+                if card.suit == "Joker":
+                    answer = list()
+                    answer += [input("Jakiego koloru ma być ten Joker?")]
+                    answer += [int(input("Jakiej figury ma być ten Joker?"))]
+                    card.renameJoker(*answer)
+
             if all(card.value == pickedCards[0].value for card in pickedCards):
                 if self.rules['putting_cards'] == 1:
                     if len(pickedCards) != 2 or self.state['type'] == 'jackDemand':
                         return pickedCards
                     else:
-                        error = "Zasady zabraniają wyrzucania 2 kart!"
-                        return error
+                        print("Zasady zabraniają wyrzucania 2 kart!")
+                        return []
                 else:
                     return pickedCards
             else:
-                error = "Karty powinny być tej samej figury!"
-                return error
+                print("Karty powinny być tej samej figury!")
+                return []
         else:
-            error = "Nie wybrałeś kart!"
-            return error
+            print("Nie wybrałeś kart!")
+            return []
 
-    def matchWithTopCard(self, pickedCards):
+    def matchWithTopCard(self, pickedCards, player):
+        """"""
+        def validate():
             """
-            Conditions over cards match, considers all game states
+            Conditions over  cards match, considers all game states
             :param pickedCards: cards intended to be add to stack
-            :return: (Boolean) True / (str) error message
+            :return: Boolean
             """
             firstCard, topCard = pickedCards[0], self.stack.cards[-1]
             #1. If Queen Spades
-
             if 'queen' in self.rules['functional_cards']:
                 if len(pickedCards) == 1:
                     if firstCard.value == 12 and firstCard.suit == 'Wino':
@@ -178,7 +182,6 @@ class Game(object):
 
                 if topCard.value == 12 and topCard.suit == 'Wino':
                     return True
-
             #2. If valiant state
             if self.state['type'] == 'valiant':
                 if firstCard in valiantCards:
@@ -186,8 +189,8 @@ class Game(object):
                         if firstCard.value == topCard.value:
                             return True
                         else:
-                            error = "Niestety! Zasady zabraniają użycia kart walecznych o innej figurze niż ta na stosie"
-                            return error
+                            print("Niestety! Zasady zabraniają użycia kart walecznych o innej figurze niż ta na stosie")
+                            return False
 
                     if self.rules['valiant_cards'] == 2:
                         if firstCard.value == topCard.value:
@@ -195,8 +198,8 @@ class Game(object):
                         elif firstCard.suit == topCard.suit:
                             return True
                         else:
-                            error = "Niestety! Pierwsza karta nie jest w tym samym kolorze co ta na wierzchu!"
-                            return error
+                            print("Niestety! Pierwsza karta nie jest w tym samym kolorze co ta na wierzchu!")
+                            return False
 
                     if self.rules['valiant_cards'] == 3:
                         if firstCard.value == topCard.value:
@@ -205,47 +208,54 @@ class Game(object):
                             if firstCard.value > topCard.value:
                                 return True
                             else:
-                                error = "Niestety! Zgodnie z zasadami, karty muszą mieć wyższą wartość niż ta na wierzchu stosu"
-                                return error
+                                print(
+                                    "Niestety! Zgodnie z zasadami, karty muszą mieć wyższą wartość niż ta na wierzchu stosu")
+                                return False
                         else:
-                            error = "Niestety! Pierwsza karta nie jest w tym samym kolorze co ta na wierzchu!"
-                            return error
+                            print("Niestety! Pierwsza karta nie jest w tym samym kolorze co ta na wierzchu!")
+                            return False
 
                 else:
-                    error = "Niestety! Podana karta musi być waleczna!"
-                    return error
-
+                    print("Niestety! Podana karta musi być waleczna!")
+                    return False
             #3. if delay state
             if self.state['type'] == 'delay':
                 if firstCard.value == 4:
                     return True
                 else:
-                    error = "Niestety! Potrzebna jest 4."
-                    return error
+                    print("Niestety! Potrzebna jest 4.")
+                    return False
             #4. if jackDemand state
             if self.state['type'] == 'jackDemand':
                 if firstCard.value == self.state['value'] or firstCard.value == 11:
                     return True
                 else:
-                    error = "Niestety! Wybrana karta nie spełnia wymagań żądania Waleta."
-                    return error
+                    print("Niestety! Wybrana karta nie spełnia wymagań żądania Waleta.")
+                    return False
             #5. if aceDemand state
             if self.state['type'] == 'aceDemand':
                 if firstCard.suit == self.state['value'] or firstCard.value == 1:
                     self.resetState()
                     return True
                 else:
-                    error = "Niestety! Wybrana karta nie spełnia wymagań żądania Asa."
-                    return error
+                    print("Niestety! Wybrana karta nie spełnia wymagań żądania Asa.")
+                    return False
             #6. regular match
             if firstCard.suit == topCard.suit or firstCard.value == topCard.value:
                 return True
             else:
-                error = "Niestety! Wybrana karta nie pasuje do karty na wierzchu stosu."
-                return error
+                print("Niestety! Wybrana karta nie pasuje do karty na wierzchu stosu.")
+                return False
 
-    def isFunctional(self, cardList):
-        """ Modifies state accordingly if cards are functional """
+        match = validate()
+        if match:
+            self.stack.addToStack(pickedCards)
+            player.removeCards(pickedCards)
+            return True
+        else:
+            return False
+
+    def isFunctional(self, cardList,currentPlayer):
         for card in cardList:
             if card in delayCards:
                 self.state['type'] = 'delay'
@@ -258,18 +268,26 @@ class Game(object):
                     self.state['value'] += card.value
             if card in demandCards:
                 if card.value == 1:
-                    return "Ace"
+                    self.state['type'] = 'aceDemand'
+                    self.state['value'] = input("Jakiego koloru żądasz?")
+                    print(self.state)
+                    return
                 elif card.value == 11:
-                    return "Jack"
+                    self.state['type'] = 'jackDemand'
+                    self.state['value'] = int(input("Jakiej karty żądasz?"))
+                    self.state['demandTurns'] = len(self.players)+1
+                    print(self.state)
+                    return
+        print(self.state)
         return
 
-    def take(self):
+    def take(self,player):
         """Dobieranie jednej karty
             +Walidacja wyrzucanych kart"""
         #Musiałam zrobić prawie kalkę części "put" w Choose; może da się to jakoś zmienić w funkcję
 
         #zapisuję do listy,bo validate powinno przyjmować listę
-        newCard = self.currentPlayer.draw(self.deck)
+        newCard = player.draw(self.deck)
         pickedCards = []
         pickedCards.append(newCard)
 
@@ -279,19 +297,19 @@ class Game(object):
         if self.rules['taking_cards'] == 2:
             answer = input("Chcesz wyrzucić nową kartę? (t/n)")
             if answer == 't':
-                if self.matchWithTopCard(pickedCards):
-                    self.isFunctional(pickedCards)
+                if self.matchWithTopCard(pickedCards, player):
+                    self.isFunctional(pickedCards, player)
                 else:
                     self.resetJokers(pickedCards)
 
         if self.rules['taking_cards'] == 3:
             answer = input("Chcesz wyrzucić nową kartę? (t/n)")
             if answer == 't':
-                pickedCards.extend(self.letUserPickCardsToPut(self.currentPlayer))
+                pickedCards.extend(self.letUserPickCardsToPut(player))
                 pickedCards = self.checkPickedCards(pickedCards)
                 if pickedCards:
-                    if self.matchWithTopCard(pickedCards):
-                        self.isFunctional(pickedCards)
+                    if self.matchWithTopCard(pickedCards, player):
+                        self.isFunctional(pickedCards, player)
                     else:
                         self.resetJokers(pickedCards)
                 else:
@@ -305,7 +323,6 @@ class Game(object):
     def pickCards(self,card_indexes):
         pickedCards = []
         for i in card_indexes:
-            i = int(i)
             pickedCards.append(self.currentPlayer.hand[i])
         return pickedCards
 

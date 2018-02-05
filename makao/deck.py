@@ -1,7 +1,6 @@
 from makao.cards import Card, suits
 import random
 # encoding=utf8
-#TODO może będzie coś w stylu createFunctionalCards w klasie deck narazie i będzie się odpalać po stworzeniu talii?
 
 class Deck(object):
     """ Deck class is build from 54 Cards objects"""
@@ -21,12 +20,6 @@ class Deck(object):
                 self.cards.append(Card("Joker",0,id,True))
                 id += 1
 
-    def show(self):
-        """For testing purposes"""
-        print("Talia wygląda tak:")
-        for c in self.cards:
-            c.show()
-
     def shuffle(self):
         """ Shuffles created deck"""
         for i in range(len(self.cards)-1,0,-1):
@@ -34,17 +27,14 @@ class Deck(object):
             self.cards[i], self.cards[r] = self.cards[r], self.cards[i]
 
     def drawCard(self):
+        """ Draws card from deck
+        :return Card object """
         return self.cards.pop()
 
     def isSufficient(self,cardsToTake):
-        """ Checks if there are enough cards in deck to take from it"""
+        """ Checks if there are enough cards in deck to take from it
+        :return Boolean"""
         if cardsToTake >= len(self.cards):
             return False
         else:
             return True
-
-    #To będzie bardzo pomocna funkcja ale niekoniecznie w decku, bardziej w ręce
-    def findById(self,id):
-        for card in self.cards:
-            if card.id == id:
-                return card

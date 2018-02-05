@@ -8,11 +8,137 @@ main {
    flex: 1 0 auto;
 }
 
+nav {
+margin-bottom: -25px;
+z-index:100;
+}
+
+.card-panel{
+    text-align:center;
+}
+
+.card-panel h3,p {
+margin: 10px 5px 0;
+}
+
+.start{
+margin:15% auto;
+width: 80%;
+text-align:center;
+}
+
+.start h2{
+font-size:46px;
+}
+
+h2{
+font-size: 38px;
+text-align:center;
+}
+
+h3{
+font-size:20px;
+}
+
+h4 {
+font-size:16px;
+}
+
+.begin{
+    margin: 5% auto;
+    width:95%;
+    text-align: center;
+}
+
+.rules{
+    margin: 5% auto;
+    width:75%;
+}
+
+.rules>div{
+flex:center;
+}
+
+.rules form{
+padding: 5px auto;
+border:1px solid #ff9800;
+border-radius: 5%;
+}
+
+form > div {
+padding: 5% 10%;
+}
+
+form div .row div p,
+form div .row div h3 {
+    padding-left:10%;
+    text-align: left;
+}
+
+form>div>div>div:last-child,
+form div .row div.end>h3{
+text-align:center;
+}
+
+
+.submit{
+    margin: 5% 2% auto;
+    text-align:center;
+}
+
+.summary {
+text-align:left;
+}
+
+.summary span {
+    color:#ffa726;
+}
+
+.players{
+color:#ffa726;
+font-size:20px;
+text-align:center;
+}
+
+.rules-summary{
+padding-left:30%;
+}
+
 img.cards {
     height:180px;
-    width:120px;
+    width:120px
+}
+
+.competitors_cards {
+    height:120px;
+    width:80px;
+    margin-left:-30px;
+}
+
+.competitors {
+text-align:center;
+font-weight:400;
+}
+
+.table {
+margin-top: 5%;
+margin-bottom: 5%;
+}
+
+.action {
+margin: 50% auto;
+}
+
+.players_cards h4 {
+text-align:center;
+font-weight:600;
 }
 
 select {
     display:block;
+}
+
+.info,ul .flashes {
+    font-weigh: 500;
+    color:red;
 }

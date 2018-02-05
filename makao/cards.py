@@ -23,10 +23,11 @@ class Card(object):
             print("(joker)")
 
     def renameJoker(self,suit,value):
-        """ Works only for Jokers"""
+        """ Changes suit and value of a joker"""
         self.suit = suit
         self.value = value
 
     def ResetToJoker(self):
+        """resets renamed joker to its original shape """
         self.suit = "Joker"
         self.value = 0

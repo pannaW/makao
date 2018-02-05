@@ -16,32 +16,36 @@ class Player(object):
         self.delay = 0
 
     def pickCard(self,index):
+        """ Finds card in player's hand by card index and move it to player's 'pickedCards' list """
         self.pickedCards.append(self.hand.pop(index))
 
     def cancelPickedCards(self):
+        """ Adds all picked cards back to the hand """
         self.hand.extend(self.pickedCards)
         self.pickedCards = []
 
     def draw(self,deck):
+        """ Player draws the card
+         :return Card object """
         newCard = deck.drawCard()
         self.hand.append(newCard)
         return newCard
 
     def takePunishement(self, PunishementValue, deck):
+        """ Player take punishment from valiant cards """
         i = 0
         while i < PunishementValue:
             self.draw(deck)
             i += 1
         return self
 
-    def showHand(self):
-        for card in self.hand:
-            card.show()
-
     def removeCards(self):
+        """ Player flushes cards pending in 'picked cards' list """
         self.pickedCards = []
 
     def emptyHand(self):
+        """ checks if player still has cards in hand
+        :return Boolean"""
         if not self.hand:
             return True
         else:
