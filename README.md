@@ -1,7 +1,7 @@
 # makao
 Makao is a web-based card game written in Python3.4 and Flask microframework as a part of student project.
 
-![Makao game screenshot](http://wierzba.wzks.uj.edu.pl/~15_lucarz/makao_demo.png)
+![Makao game screenshot](http://cis.wzks.uj.edu.pl/~15_lucarz/makao_demo.png)
 
 [About the game](https://en.wikipedia.org/wiki/Macau_(card_game))
 
