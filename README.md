@@ -42,4 +42,4 @@ _command "deactivate" to quit virtual enviroment._
 python3.4 run.py
 ```
 
-_Running on http://127.0.0.1:5000/ by defalut. _
+_Running on http://127.0.0.1:5000/ by defalut._
