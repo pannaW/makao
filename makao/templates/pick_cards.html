@@ -5,13 +5,11 @@
         {% if picked_cards %}
             <h4> Wybrane karty </h4>
             {% for card in picked_cards %}
-                <div class="picked-card">
-                    <img class="cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
-                    <div class="hover"></div>
+
+                    <img class="stack cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
                     {% if card.joker and card.value != 0 %} <br>
                     <p>Joker: {{ values[card.value] }} {{ card.suit }} </p>
                     {% endif %}
-                </div>
             {% endfor %}
             <div class="col s12">
                         <a href="?end=True"><button class="throw waves-effect orange btn"> Rzuć </button></a><br>
@@ -37,7 +35,7 @@
 
     {% block option %}
     {% if not picked_cards %}
-    <p style="font-style:italic; text-align:center;"> Kliknij w karty które chcesz wyrzucić lub dobierz karty.</em>
+    <p style="font-style:italic; text-align:center;"> Kliknij w karty które chcesz wyrzucić lub dobierz karty.
     <div class="col s2">
     <a href="{{ url_for('take') }}"><button class="waves-effect light-blue btn put"> Bierz </button></a>
     </div>

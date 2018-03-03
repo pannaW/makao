@@ -113,6 +113,12 @@ img.cards {
     width:120px;
 }
 
+img.stack{
+    margin-left:-90px;
+    display:inline-block;
+    float:left;
+}
+
 .picked-card{
 height:180px;
 width:120px;
@@ -144,7 +150,7 @@ img.pickable.cards:hover {
 .competitors_cards {
     height:120px;
     width:80px;
-    margin-left:-30px;
+    margin-left:-50px;
 }
 
 .competitors {

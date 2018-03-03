@@ -2,7 +2,7 @@
 {% block title %} Gra {% endblock %}
 
 {% block header %}
-       <div class="card-panel blue lighten-3">
+<div class="card-panel blue lighten-3" xmlns:color="http://www.w3.org/1999/xhtml">
            <h3> Kolejka#{{game.counter+1 }} : {{ player.name }} </h3>
 </div>
 {% endblock %}
@@ -14,6 +14,11 @@
          {% for competitor in competitors %}
             <div class="col s12 m{{ 12//competitors|length}}">
                 <h4> {{ competitor.name }} ({{ competitor.hand|length }} kart) </h4>
+                {% if not competitor.soul %}
+                {% if competitor.delay %}
+                    <p style="color:red"> Stoi: {{ competitor.delay }} kolejek </p>
+                {% endif %}
+                {% endif %}
                 {% for card in competitor.hand %}
                     <img class="competitors_cards" src="{{ url_for('static', filename='img/55.png') }}">
                 {% endfor %}
@@ -26,7 +31,10 @@
         <div class="table row">
             <div class="container fluid">
             <div class="top_card col s3 offset-s3">
-            <img class="cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
+                {% for card in game.stack.cards[-4:-1] %}
+                 <img class="stack cards" src="{{ url_for('static', filename='img/'+card.id|string+'.png') }}">
+                {% endfor %}
+            <img class="stack cards" src="{{ url_for('static', filename='img/'+topCard.id|string+'.png') }}">
                 {% if topCard.joker %}
                     <br><p class="joker_notification"> Joker: {{ values[topCard.value] }} {{ topCard.suit }} </p>
                 {% endif %}
@@ -44,7 +52,7 @@
                 <div class="col s12">
                     <div class="container fluid">
                         {% if game.state.type %}
-                            <p class="info"> <b> Informacje </b>: {{ game.state }}
+                            <p class="info">
                                 {% if game.state.type == 'aceDemand' or game.state.type == 'jackDemand' %}
                                     Żądanie: {{ game.state.value }}
                                     {% elif game.state.type == 'delay' %}

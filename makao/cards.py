@@ -4,7 +4,12 @@ values = ["Joker","As","2","3","4","5","6","7","8","9","10","Walet","Dama","Kró
 
 
 class Card(object):
-    """ Card class """
+    """ Card class
+        (str) suit
+        (int) value
+        (boolean) joker
+        (int) id
+        """
     def __init__(self, suit, value, id, joker=False):
         self.suit = suit
         self.value = value
@@ -15,12 +20,6 @@ class Card(object):
         if other is None:
             return False
         return self.suit == other.suit and self.value == other.value
-
-    def show(self):
-        """Prints the card"""
-        print("karta #{}: {} {}".format(self.id,values[self.value], self.suit))
-        if self.joker:
-            print("(joker)")
 
     def renameJoker(self,suit,value):
         """ Changes suit and value of a joker"""

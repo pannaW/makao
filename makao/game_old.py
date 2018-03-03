@@ -1,7 +1,8 @@
 # encoding=utf8
-from makao.stack import Stack, valiantCards, demandCards, delayCards, functionalCards
-from makao.deck import Deck
-from makao.player import Player
+from stack import Stack, valiantCards, demandCards, delayCards, functionalCards
+from deck import Deck
+from player import Player
+from player import Player
 
 
 class Game(object):

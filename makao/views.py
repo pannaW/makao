@@ -37,7 +37,7 @@ def players():
         players_number = int(request.form.get('players_number'))
         for i in range(1,players_number+1):
             session['players_names'].append(request.form.get('player' + str(i) + '-name'))
-        return redirect(url_for('rules'))
+        return redirect(url_for('players_computers'))
     elif request.method == 'GET':
         #2. Ask about players' names
         if request.args.get('players_number'):
@@ -45,6 +45,18 @@ def players():
             return render_template('players.html', players_number=players_number)
         #1. Ask about number of players
     return render_template('players.html')
+
+@app.route('/players/computers')
+def players_computers():
+    """ Gets information about computer players """
+    if len(session.get('players_names')) == 4:
+        return redirect(url_for('rules'))
+    else:
+        if request.args.get('computers_number'):
+            session['computers_number'] = request.args.get('computers_number',int)
+            return redirect(url_for('rules'))
+
+        return render_template('players_computers.html',players_number=len(session.get('players_names')))
 
 
 @app.route('/rules', methods=['GET','POST'])
@@ -77,6 +89,10 @@ def begin():
         for player in session['players_names']:
             players_list += [Player(player)]
 
+    if session.get('computers_number'):
+        for player in range(1,int(session['computers_number'])+1):
+            players_list += [Player('Computer ' + str(player), False)]
+
         # init Game
         game = Game(players_list, session['rules'])
 
@@ -101,12 +117,26 @@ def play():
     game.jackDemandEndCondition()
     pickle_write("game.pickle", game)
 
+    if not game.currentPlayer.soul:
+        if game.isCurrentPlayerSkipping():
+            pickle_write("game.pickle", game)
+        else:
+            game.computerStrategy()
+            pickle_write("game.pickle", game)
+        return redirect(url_for('next_player'))
+
+
     if game.isCurrentPlayerSkipping():
         pickle_write("game.pickle", game)
         return render_template('player_delayed.html',competitors=game.showCompetitors(), game=game, player=game.currentPlayer,
                            picked_cards=game.currentPlayer.pickedCards,topCard=game.stack.getTopCard(), values=values)
     else:
-        return redirect(url_for('pick_cards'))
+        if not game.currentPlayer.soul:
+            game.computerStrategy()
+            pickle_write("game.pickle", game)
+            return redirect(url_for('next_player'))
+        else:
+            return redirect(url_for('pick_cards'))
 
 
 @app.route('/pick_cards', methods=['GET','POST'])
