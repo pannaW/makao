@@ -1,0 +1,4 @@
+.idea/
+game.pickle
+makao/__pycache__
+makao/game_old.py
